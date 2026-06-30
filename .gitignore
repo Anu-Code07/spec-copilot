@@ -1,0 +1,38 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Build outputs
+dist/
+build/
+*.tsbuildinfo
+
+# Turbo
+.turbo/
+
+# Environment
+.env
+.env.*
+!.env.example
+
+# IDE
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Test coverage
+coverage/
+
+# SpecDrive project data (local dev)
+.specdrive/.cache/
+.specdrive/knowledge.db
+
+# Logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
