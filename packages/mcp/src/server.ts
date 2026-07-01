@@ -31,6 +31,14 @@ import {
   type GateName,
   type SpecDocument,
   formatGenerationBundle,
+  importFigmaDesign,
+  generateFromDesign,
+  generateFigmaForSpec,
+  getFigmaIntegrationStatus,
+  readSpecDesignExcerpt,
+  type Design2CodeFramework,
+  type Design2CodeScope,
+  type Design2CodeMergeStrategy,
 } from '@specdrive/core';
 import { cwd } from 'node:process';
 
@@ -172,10 +180,19 @@ export async function createMcpServer(): Promise<Server> {
       },
       {
         name: 'get_next_task',
-        description: 'Get implementation context for the next pending task',
+        description:
+          'Get implementation context for the next pending task. Set autoFigma=true to run Design2Code on UI tasks (skips logic tasks and when unavailable).',
         inputSchema: {
           type: 'object',
-          properties: { slug: { type: 'string' } },
+          properties: {
+            slug: { type: 'string' },
+            autoFigma: {
+              type: 'boolean',
+              description: 'Auto-run Design2Code for UI tasks; skip logic/state/navigation tasks',
+            },
+            figmaFileKey: { type: 'string', description: 'Figma file key or URL' },
+            figmaToken: { type: 'string', description: 'Figma token override' },
+          },
         },
       },
       {
@@ -223,6 +240,105 @@ export async function createMcpServer(): Promise<Server> {
         inputSchema: {
           type: 'object',
           properties: { slug: { type: 'string' } },
+        },
+      },
+      {
+        name: 'figma_status',
+        description:
+          'Check Design2Code (figma-to-code) integration: package installed, FIGMA_TOKEN, design AST',
+        inputSchema: { type: 'object', properties: {} },
+      },
+      {
+        name: 'figma_import',
+        description:
+          'Import a Figma file into .design2code/design-ast.json using Design2Code (figma-to-code)',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            fileKey: { type: 'string', description: 'Figma file key or full Figma URL' },
+            figmaToken: { type: 'string', description: 'Optional — defaults to FIGMA_TOKEN env' },
+            outputDir: { type: 'string', description: 'Output dir under project root (default .design2code)' },
+            nodeIds: {
+              type: 'array',
+              items: { type: 'string' },
+              description: 'Optional Figma node IDs to import',
+            },
+          },
+          required: ['fileKey'],
+        },
+      },
+      {
+        name: 'figma_generate',
+        description:
+          'Generate code from Figma or saved Design AST via Design2Code. Use mergeStrategy preview to dry-run.',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            framework: {
+              type: 'string',
+              enum: ['flutter', 'react', 'nextjs', 'react-native'],
+            },
+            scope: {
+              type: 'string',
+              enum: ['component', 'screen', 'feature', 'project'],
+            },
+            figmaFileKey: { type: 'string' },
+            figmaToken: { type: 'string' },
+            astPath: { type: 'string' },
+            designSystemPath: { type: 'string' },
+            mergeStrategy: {
+              type: 'string',
+              enum: ['create', 'merge', 'replace', 'preview'],
+            },
+            selection: { type: 'array', items: { type: 'string' } },
+            includeTests: { type: 'boolean' },
+          },
+          required: ['framework', 'scope'],
+        },
+      },
+      {
+        name: 'figma_generate_for_spec',
+        description:
+          'Generate UI code for a SpecDrive spec using project stack + Figma. Best after design.md is approved.',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            slug: { type: 'string' },
+            figmaFileKey: { type: 'string' },
+            figmaToken: { type: 'string' },
+            scope: {
+              type: 'string',
+              enum: ['component', 'screen', 'feature', 'project'],
+            },
+            mergeStrategy: {
+              type: 'string',
+              enum: ['create', 'merge', 'replace', 'preview'],
+            },
+            selection: { type: 'array', items: { type: 'string' } },
+            includeTests: { type: 'boolean' },
+          },
+          required: ['slug'],
+        },
+      },
+      {
+        name: 'figma_preview',
+        description: 'Preview Design2Code output without writing files (mergeStrategy=preview)',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            framework: {
+              type: 'string',
+              enum: ['flutter', 'react', 'nextjs', 'react-native'],
+            },
+            scope: {
+              type: 'string',
+              enum: ['component', 'screen', 'feature', 'project'],
+            },
+            figmaFileKey: { type: 'string' },
+            figmaToken: { type: 'string' },
+            astPath: { type: 'string' },
+          },
+          required: ['framework', 'scope'],
         },
       },
     ],
@@ -373,8 +489,13 @@ export async function createMcpServer(): Promise<Server> {
         }
         case 'get_next_task': {
           const slug = await resolveSpecSlug(root, a.slug as string | undefined);
-          const ctx = await getImplementContext(root, { spec: slug });
-          return { content: [{ type: 'text', text: formatImplementContext(ctx) }] };
+          const result = await getImplementContext(root, {
+            spec: slug,
+            autoFigma: a.autoFigma === true,
+            figmaFileKey: a.figmaFileKey as string | undefined,
+            figmaToken: a.figmaToken as string | undefined,
+          });
+          return { content: [{ type: 'text', text: formatImplementContext(result) }] };
         }
         case 'complete_task': {
           await completeTask(root, a.slug as string, a.taskId as string);
@@ -414,6 +535,62 @@ export async function createMcpServer(): Promise<Server> {
               }, null, 2),
             }],
           };
+        }
+        case 'figma_status': {
+          const status = await getFigmaIntegrationStatus(root);
+          return { content: [{ type: 'text', text: JSON.stringify(status, null, 2) }] };
+        }
+        case 'figma_import': {
+          const result = await importFigmaDesign(root, {
+            fileKey: a.fileKey as string,
+            figmaToken: a.figmaToken as string | undefined,
+            outputDir: a.outputDir as string | undefined,
+            nodeIds: a.nodeIds as string[] | undefined,
+          });
+          return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
+        }
+        case 'figma_generate': {
+          const result = await generateFromDesign(root, {
+            framework: a.framework as Design2CodeFramework,
+            scope: a.scope as Design2CodeScope,
+            figmaFileKey: a.figmaFileKey as string | undefined,
+            figmaToken: a.figmaToken as string | undefined,
+            astPath: a.astPath as string | undefined,
+            designSystemPath: a.designSystemPath as string | undefined,
+            mergeStrategy: (a.mergeStrategy as Design2CodeMergeStrategy | undefined) ?? 'preview',
+            selection: a.selection as string[] | undefined,
+            includeTests: a.includeTests as boolean | undefined,
+          });
+          return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
+        }
+        case 'figma_generate_for_spec': {
+          const slug = a.slug as string;
+          const designExcerpt = await readSpecDesignExcerpt(root, slug);
+          const result = await generateFigmaForSpec(root, slug, {
+            figmaFileKey: a.figmaFileKey as string | undefined,
+            figmaToken: a.figmaToken as string | undefined,
+            scope: a.scope as Design2CodeScope | undefined,
+            mergeStrategy: (a.mergeStrategy as Design2CodeMergeStrategy | undefined) ?? 'merge',
+            selection: a.selection as string[] | undefined,
+            includeTests: a.includeTests as boolean | undefined,
+          });
+          return {
+            content: [{
+              type: 'text',
+              text: JSON.stringify({ designExcerpt, ...result }, null, 2),
+            }],
+          };
+        }
+        case 'figma_preview': {
+          const result = await generateFromDesign(root, {
+            framework: a.framework as Design2CodeFramework,
+            scope: a.scope as Design2CodeScope,
+            figmaFileKey: a.figmaFileKey as string | undefined,
+            figmaToken: a.figmaToken as string | undefined,
+            astPath: a.astPath as string | undefined,
+            mergeStrategy: 'preview',
+          });
+          return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
         }
         default:
           throw new Error(`Unknown tool: ${name}`);

@@ -119,6 +119,54 @@ npx -y @specdrive/mcp</code></pre>
 <span class="step">get_next_task</span>          → implement</div>
       </section>
 
+      <section id="figma">
+        <h2>Figma + Design2Code (figma-to-code)</h2>
+        <p>
+          SpecDrive MCP can call your
+          <a href="https://github.com/Anu-Code07/figma-to-code">Design2Code</a> integration for
+          <strong>UI tasks only</strong>. State, BLoC, navigation, validation, and tests stay with
+          Cursor/Claude via <code>get_next_task</code>.
+        </p>
+
+        <h3>Figma token (Personal Access Token)</h3>
+        <p>Figma does not use OAuth popups like GitHub. You generate a token once:</p>
+        <ol>
+          <li>Open <a href="https://www.figma.com/settings">figma.com/settings</a></li>
+          <li>Scroll to <strong>Personal access tokens</strong></li>
+          <li>Generate → copy token (starts with <code>figd_</code>)</li>
+        </ol>
+        <pre><code># Option A — Design2Code config (recommended)
+design2code login --figma-token figd_YOUR_TOKEN
+
+# Option B — shell profile
+export FIGMA_TOKEN="figd_YOUR_TOKEN" >> ~/.zshrc
+
+# Option C — Cursor MCP env
+"env": { "FIGMA_TOKEN": "figd_YOUR_TOKEN" }</code></pre>
+
+        <h3>Link Figma file to project</h3>
+        <pre><code># .specdrive/figma.json
+{
+  "fileKey": "YOUR_FIGMA_FILE_KEY"
+}</code></pre>
+
+        <h3>Auto-run UI tasks</h3>
+        <pre><code># MCP — pass autoFigma: true on get_next_task
+# UI tasks → Design2Code generates widgets/screens (component scope)
+# Logic tasks → skipped, returns normal implement context
+
+# CLI
+spec implement --spec my-feature --next --auto-figma</code></pre>
+
+        <table>
+          <thead><tr><th>Task type</th><th>Who implements</th></tr></thead>
+          <tbody>
+            <tr><td>Scaffold screen, UI components</td><td>Design2Code (if installed + Figma linked)</td></tr>
+            <tr><td>Wire state / BLoC / navigation / validation / tests</td><td>Cursor/Claude via SpecDrive context</td></tr>
+          </tbody>
+        </table>
+      </section>
+
       <section>
         <h2>Available MCP tools</h2>
         <table>
@@ -133,7 +181,12 @@ npx -y @specdrive/mcp</code></pre>
             <tr><td><code>generate_design</code></td><td>Design generation bundle</td></tr>
             <tr><td><code>generate_tasks</code></td><td>Tasks generation bundle</td></tr>
             <tr><td><code>scan_codebase</code></td><td>Scan repo for source context</td></tr>
-            <tr><td><code>get_next_task</code></td><td>Implementation context for next task</td></tr>
+            <tr><td><code>get_next_task</code></td><td>Implementation context; <code>autoFigma: true</code> runs Design2Code on UI tasks</td></tr>
+            <tr><td><code>figma_status</code></td><td>Check Design2Code + FIGMA_TOKEN setup</td></tr>
+            <tr><td><code>figma_import</code></td><td>Import Figma/MCP Figma file to Design AST</td></tr>
+            <tr><td><code>figma_generate</code></td><td>Generate code from Figma/AST</td></tr>
+            <tr><td><code>figma_generate_for_spec</code></td><td>Generate using spec stack + Figma</td></tr>
+            <tr><td><code>figma_preview</code></td><td>Preview generated code (no writes)</td></tr>
             <tr><td><code>review_code</code></td><td>Review against design.md</td></tr>
             <tr><td><code>search_specs</code></td><td>List all specs</td></tr>
           </tbody>

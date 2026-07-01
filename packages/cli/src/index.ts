@@ -11,6 +11,7 @@ import { registerList } from './commands/list.js';
 import { registerDoctor } from './commands/doctor.js';
 import { registerReview } from './commands/review.js';
 import { registerGapAnalysis } from './commands/gap-analysis.js';
+import { registerFigma } from './commands/figma.js';
 
 export function run(argv: string[]): void {
   const program = new Command();
@@ -25,6 +26,7 @@ export function run(argv: string[]): void {
   registerApprove(program);
   registerDesign(program);
   registerGapAnalysis(program);
+  registerFigma(program);
   registerTasks(program);
   registerImplement(program);
   registerStatus(program);

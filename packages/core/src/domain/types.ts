@@ -126,6 +126,8 @@ export interface ImplementContext {
   };
 }
 
+export type TaskKind = 'ui' | 'logic' | 'unknown';
+
 export interface CreateSpecOptions {
   title: string;
   description?: string;

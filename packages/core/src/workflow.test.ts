@@ -86,9 +86,9 @@ describe('SpecDrive workflow', () => {
       quick: true,
     });
 
-    const ctx = await getImplementContext(projectRoot, { spec: slug });
-    expect(ctx.task.id).toBe('TASK-001');
-    expect(ctx.designContent).toContain('# Design:');
+    const result = await getImplementContext(projectRoot, { spec: slug });
+    expect(result.context.task.id).toBe('TASK-001');
+    expect(result.context.designContent).toContain('# Design:');
   });
 
   it('marks task complete', async () => {
@@ -98,8 +98,8 @@ describe('SpecDrive workflow', () => {
     });
 
     await completeTask(projectRoot, slug, 'TASK-001');
-    const ctx = await getImplementContext(projectRoot, { spec: slug });
-    expect(ctx.task.id).not.toBe('TASK-001');
+    const result = await getImplementContext(projectRoot, { spec: slug });
+    expect(result.context.task.id).not.toBe('TASK-001');
   });
 
   it('blocks design without gap analysis approval', async () => {
