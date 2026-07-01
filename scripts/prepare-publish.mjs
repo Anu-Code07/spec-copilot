@@ -1,12 +1,13 @@
 #!/usr/bin/env node
 /**
- * Prepare workspace packages for npm publish by replacing workspace:* deps
- * with the target version.
+ * Prepare workspace packages for npm publish.
+ * ONLY runs in CI publish workflow — do NOT commit the output.
+ * Monorepo dev uses workspace:* in package.json; pnpm publish resolves these at publish time.
  */
 import { readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
-const VERSION = process.argv[2] ?? '0.1.0';
+const VERSION = (process.argv[2] ?? '0.1.0').replace(/^v/, '');
 const root = join(import.meta.dirname, '..');
 
 const packages = [
@@ -24,40 +25,19 @@ for (const pkgPath of packages) {
   const pkg = JSON.parse(readFileSync(file, 'utf-8'));
   pkg.version = VERSION;
 
-  if (!pkg.publishConfig) {
-    pkg.publishConfig = { access: 'public' };
-  }
-
-  if (!pkg.repository) {
-    pkg.repository = {
-      type: 'git',
-      url: 'https://github.com/Anu-Code07/spec-copilot.git',
-      directory: pkgPath,
-    };
-  }
-
-  if (!pkg.files) {
-    pkg.files = ['dist', 'bin', 'README.md'].filter((f) => {
-      try {
-        readFileSync(join(root, pkgPath, f));
-        return true;
-      } catch {
-        return f === 'dist';
-      }
-    });
-  }
+  if (!pkg.publishConfig) pkg.publishConfig = { access: 'public' };
 
   for (const section of ['dependencies', 'devDependencies', 'peerDependencies']) {
     if (!pkg[section]) continue;
     for (const [name, ver] of Object.entries(pkg[section])) {
-      if (ver === 'workspace:*') {
+      if (ver === 'workspace:*' || ver.startsWith('workspace:')) {
         pkg[section][name] = `^${VERSION}`;
       }
     }
   }
 
   writeFileSync(file, JSON.stringify(pkg, null, 2) + '\n');
-  console.log(`Prepared ${pkg.name}@${VERSION}`);
+  console.log(`Prepared ${pkg.name}@${VERSION} for publish`);
 }
 
-console.log(`\nDone. Run: pnpm publish -r --access public --no-git-checks`);
+console.log('\nDone. Run: pnpm publish -r --access public --no-git-checks');

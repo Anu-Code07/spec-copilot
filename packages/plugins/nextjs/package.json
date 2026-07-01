@@ -12,7 +12,7 @@
     "clean": "rm -rf dist"
   },
   "dependencies": {
-    "@specdrive/core": "^0.1.0"
+    "@specdrive/core": "workspace:*"
   },
   "devDependencies": {
     "typescript": "^5.7.2"

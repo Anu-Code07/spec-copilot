@@ -24,7 +24,7 @@
     "gray-matter": "^4.0.3",
     "yaml": "^2.6.1",
     "zod": "^3.24.1",
-    "@specdrive/review-engine": "^0.1.0"
+    "@specdrive/review-engine": "workspace:*"
   },
   "devDependencies": {
     "typescript": "^5.7.2",
