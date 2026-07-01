@@ -97,6 +97,8 @@ See [packages/mcp/README.md](packages/mcp/README.md) for Cursor MCP setup.
 
 ## Documentation
 
+**Docs site:** [https://anu-code07.github.io/spec-copilot/](https://anu-code07.github.io/spec-copilot/) (GitHub Pages)
+
 | Document | Description |
 |----------|-------------|
 | [Frontend SDD](docs/phase-1/FRONTEND-SDD.md) | Core philosophy — frontend-first, Kiro-style |
@@ -115,7 +117,7 @@ See [packages/mcp/README.md](packages/mcp/README.md) for Cursor MCP setup.
 | **3** | Core implementation (CLI + spec engine) | ✅ Complete |
 | **4** | MCP server, AI generation, review engine | ✅ Complete |
 | **5** | VS Code extension | ✅ Complete |
-| **6** | Documentation site | Planned |
+| **6** | Documentation site | ✅ Complete |
 | **7** | Example projects (Flutter, Next.js, RN) | Planned |
 
 ## License

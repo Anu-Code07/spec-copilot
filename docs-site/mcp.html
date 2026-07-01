@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Set up SpecDrive MCP for Cursor and Claude Desktop — npm install and configuration.">
+  <title>MCP setup — SpecDrive</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="site-header">
+    <nav class="nav-inner">
+      <a class="brand" href="index.html">
+        <svg width="28" height="28" viewBox="0 0 128 128" fill="none" aria-hidden="true">
+          <rect width="128" height="128" rx="24" fill="#0F172A"/>
+          <path d="M32 36h64v8H32V36zm0 20h48v8H32V56zm0 20h56v8H32V76zm0 20h40v8H32V96z" fill="#38BDF8"/>
+          <circle cx="96" cy="40" r="10" fill="#22C55E"/>
+        </svg>
+        SpecDrive
+      </a>
+      <button class="menu-btn" type="button" aria-label="Menu">☰</button>
+      <ul class="nav-links">
+        <li><a href="index.html">Home</a></li>
+        <li><a href="getting-started.html">Get started</a></li>
+        <li><a href="cli.html">CLI</a></li>
+        <li><a href="mcp.html" class="active">MCP</a></li>
+        <li><a href="spec-format.html">Spec format</a></li>
+        <li><a href="https://github.com/Anu-Code07/spec-copilot" target="_blank" rel="noopener">GitHub</a></li>
+        <li><a href="getting-started.html" class="nav-cta">Quick start</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <main>
+    <div class="container">
+      <header class="page-header">
+        <h1>MCP setup</h1>
+        <p>Use SpecDrive in Cursor or Claude Desktop via the Model Context Protocol.</p>
+      </header>
+
+      <div class="callout">
+        <div class="callout-title">How MCP mode works</div>
+        <p>
+          SpecDrive MCP <strong>scans your repo</strong> and returns generation bundles (prompts + context).
+          <strong>You</strong> (Cursor/Claude) generate the markdown using your host API key, then call
+          <code>write_spec_document</code>. SpecDrive never calls an LLM in MCP mode.
+        </p>
+      </div>
+
+      <section>
+        <h2>Install</h2>
+        <pre><code>npm install -g @specdrive/mcp @specdrive/cli
+
+# Or use npx without global install (recommended)
+npx -y @specdrive/mcp</code></pre>
+        <p>Run <code>spec init</code> in your project before using MCP tools.</p>
+      </section>
+
+      <section>
+        <h2>Cursor</h2>
+        <p>Add to <code>.cursor/mcp.json</code> in your project root:</p>
+        <pre><code>{
+  "mcpServers": {
+    "specdrive": {
+      "command": "npx",
+      "args": ["-y", "@specdrive/mcp"],
+      "cwd": "${workspaceFolder}"
+    }
+  }
+}</code></pre>
+        <p>Restart Cursor or reload MCP servers from settings.</p>
+      </section>
+
+      <section>
+        <h2>Claude Desktop</h2>
+        <p>Edit <code>claude_desktop_config.json</code>:</p>
+        <ul>
+          <li><strong>macOS:</strong> <code>~/Library/Application Support/Claude/claude_desktop_config.json</code></li>
+          <li><strong>Windows:</strong> <code>%APPDATA%\Claude\claude_desktop_config.json</code></li>
+        </ul>
+        <pre><code>{
+  "mcpServers": {
+    "specdrive": {
+      "command": "npx",
+      "args": ["-y", "@specdrive/mcp"],
+      "cwd": "/absolute/path/to/your/project"
+    }
+  }
+}</code></pre>
+        <p>Replace <code>cwd</code> with your project root. Restart Claude Desktop.</p>
+
+        <h3>Global install alternative</h3>
+        <pre><code>npm install -g @specdrive/mcp</code></pre>
+        <pre><code>{
+  "mcpServers": {
+    "specdrive": {
+      "command": "specdrive-mcp",
+      "cwd": "/absolute/path/to/your/project"
+    }
+  }
+}</code></pre>
+      </section>
+
+      <section>
+        <h2>MCP workflow</h2>
+        <div class="workflow"><span class="step">create_spec</span>           → requirements bundle
+<span class="step">write_spec_document</span>  → save requirements.md
+<span class="step">update_spec</span>            → approve requirements
+<span class="step">generate_gap_analysis</span> → gap-analysis bundle
+<span class="step">write_spec_document</span>  → save gap-analysis.md
+<span class="step">generate_design</span>        → design bundle
+<span class="step">write_spec_document</span>  → save design.md
+<span class="step">generate_tasks</span>         → tasks bundle
+<span class="step">get_next_task</span>          → implement</div>
+      </section>
+
+      <section>
+        <h2>Available MCP tools</h2>
+        <table>
+          <thead>
+            <tr><th>Tool</th><th>Description</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><code>create_spec</code></td><td>Scaffold spec + return generation bundle</td></tr>
+            <tr><td><code>write_spec_document</code></td><td>Save host-generated markdown</td></tr>
+            <tr><td><code>update_spec</code></td><td>Approve workflow gate</td></tr>
+            <tr><td><code>generate_gap_analysis</code></td><td>Gap-analysis generation bundle</td></tr>
+            <tr><td><code>generate_design</code></td><td>Design generation bundle</td></tr>
+            <tr><td><code>generate_tasks</code></td><td>Tasks generation bundle</td></tr>
+            <tr><td><code>scan_codebase</code></td><td>Scan repo for source context</td></tr>
+            <tr><td><code>get_next_task</code></td><td>Implementation context for next task</td></tr>
+            <tr><td><code>review_code</code></td><td>Review against design.md</td></tr>
+            <tr><td><code>search_specs</code></td><td>List all specs</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section>
+        <h2>Marketplace listing</h2>
+        <p>
+          For one-click install via Cursor Marketplace or Claude Connectors Directory, see the
+          <a href="https://github.com/Anu-Code07/spec-copilot/blob/main/docs/MARKETPLACE-SUBMISSION.md">marketplace submission guide</a> on GitHub.
+        </p>
+      </section>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="footer-links">
+      <a href="index.html">Home</a>
+      <a href="https://github.com/Anu-Code07/spec-copilot/tree/main/packages/mcp">MCP package (GitHub)</a>
+    </div>
+    <p>SpecDrive documentation</p>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>

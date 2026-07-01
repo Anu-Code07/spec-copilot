@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="SpecDrive spec format — requirements.md, gap-analysis.md, design.md, tasks.md for frontend projects.">
+  <title>Spec format — SpecDrive</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="site-header">
+    <nav class="nav-inner">
+      <a class="brand" href="index.html">
+        <svg width="28" height="28" viewBox="0 0 128 128" fill="none" aria-hidden="true">
+          <rect width="128" height="128" rx="24" fill="#0F172A"/>
+          <path d="M32 36h64v8H32V36zm0 20h48v8H32V56zm0 20h56v8H32V76zm0 20h40v8H32V96z" fill="#38BDF8"/>
+          <circle cx="96" cy="40" r="10" fill="#22C55E"/>
+        </svg>
+        SpecDrive
+      </a>
+      <button class="menu-btn" type="button" aria-label="Menu">☰</button>
+      <ul class="nav-links">
+        <li><a href="index.html">Home</a></li>
+        <li><a href="getting-started.html">Get started</a></li>
+        <li><a href="cli.html">CLI</a></li>
+        <li><a href="mcp.html">MCP</a></li>
+        <li><a href="spec-format.html" class="active">Spec format</a></li>
+        <li><a href="https://github.com/Anu-Code07/spec-copilot" target="_blank" rel="noopener">GitHub</a></li>
+        <li><a href="getting-started.html" class="nav-cta">Quick start</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <main>
+    <div class="container">
+      <header class="page-header">
+        <h1>Spec format</h1>
+        <p>Four linked documents per feature, plus metadata and steering files.</p>
+      </header>
+
+      <section>
+        <h2>Directory structure</h2>
+        <pre><code>.specdrive/
+├── config.yaml
+├── product.md              # Product steering
+├── tech-stack.md           # Stack (flutter | nextjs | react-native)
+├── structure.md            # Folder architecture
+├── coding-style.md         # Conventions
+└── specs/
+    └── {feature-slug}/
+        ├── meta.yaml       # Gates, phase, IDs
+        ├── requirements.md
+        ├── gap-analysis.md
+        ├── design.md
+        └── tasks.md</code></pre>
+      </section>
+
+      <section>
+        <h2>Gate order</h2>
+        <div class="workflow"><span class="step">requirements</span>  → approve →
+<span class="step">gap_analysis</span> → approve →
+<span class="step">design</span>       → approve →
+<span class="step">tasks</span>        → approve →
+implementing</div>
+        <p>Tracked in <code>meta.yaml</code> under <code>gates:</code> with status, timestamp, and approver.</p>
+      </section>
+
+      <section>
+        <h2>requirements.md</h2>
+        <p><strong>Phase 1 — WHAT.</strong> User stories with EARS acceptance criteria.</p>
+        <ul>
+          <li>Overview and user value</li>
+          <li>User stories (<code>REQ-001</code>, <code>REQ-002</code>, …)</li>
+          <li>EARS patterns: Ubiquitous, Event-driven, State-driven, Unwanted event</li>
+          <li>Non-functional requirements (a11y, performance)</li>
+          <li>Out of scope</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>gap-analysis.md</h2>
+        <p><strong>Phase 2 — codebase gaps.</strong> Compare requirements to what already exists in the repo.</p>
+        <ul>
+          <li>Existing code inventory (screens, routes, components)</li>
+          <li>Requirements coverage matrix</li>
+          <li>Gaps to bridge before implementation</li>
+          <li>Files to create / modify</li>
+          <li>Recommended implementation order</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>design.md</h2>
+        <p><strong>Phase 3 — UI/UX HOW.</strong> The primary frontend design artifact.</p>
+        <ul>
+          <li>User flow and screen map</li>
+          <li>Component hierarchy and specifications</li>
+          <li>Navigation table</li>
+          <li>State management (BLoC, Zustand, etc.)</li>
+          <li>Design tokens and platform behavior</li>
+          <li>Accessibility requirements</li>
+          <li>Requirement traceability (REQ → design elements)</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>tasks.md</h2>
+        <p><strong>Phase 4 — implementation plan.</strong> Sequenced frontend tasks.</p>
+        <ul>
+          <li>Waves of tasks (<code>TASK-001</code>, …)</li>
+          <li>Status, requirements refs, design refs</li>
+          <li>Files to touch, acceptance criteria</li>
+          <li>Dependencies between tasks</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>meta.yaml example</h2>
+        <pre><code>specdriveVersion: "1.0"
+id: SPEC-001
+slug: product-review
+title: Product Review Screen
+type: feature
+stack: flutter
+phase: design
+gates:
+  requirements:
+    status: approved
+  gap_analysis:
+    status: approved
+  design:
+    status: pending
+  tasks:
+    status: pending</code></pre>
+      </section>
+
+      <section>
+        <h2>Full specification</h2>
+        <p>
+          See the complete format document on GitHub:
+          <a href="https://github.com/Anu-Code07/spec-copilot/blob/main/docs/phase-2/SPEC-FORMAT.md">SPEC-FORMAT.md</a>
+        </p>
+      </section>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="footer-links">
+      <a href="index.html">Home</a>
+      <a href="https://github.com/Anu-Code07/spec-copilot/blob/main/docs/phase-2/SPEC-FORMAT.md">Full spec (GitHub)</a>
+    </div>
+    <p>SpecDrive documentation</p>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>

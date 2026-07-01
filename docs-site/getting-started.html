@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Get started with SpecDrive — init, create specs, and run the Kiro-style workflow.">
+  <title>Getting started — SpecDrive</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="site-header">
+    <nav class="nav-inner">
+      <a class="brand" href="index.html">
+        <svg width="28" height="28" viewBox="0 0 128 128" fill="none" aria-hidden="true">
+          <rect width="128" height="128" rx="24" fill="#0F172A"/>
+          <path d="M32 36h64v8H32V36zm0 20h48v8H32V56zm0 20h56v8H32V76zm0 20h40v8H32V96z" fill="#38BDF8"/>
+          <circle cx="96" cy="40" r="10" fill="#22C55E"/>
+        </svg>
+        SpecDrive
+      </a>
+      <button class="menu-btn" type="button" aria-label="Menu">☰</button>
+      <ul class="nav-links">
+        <li><a href="index.html">Home</a></li>
+        <li><a href="getting-started.html" class="active">Get started</a></li>
+        <li><a href="cli.html">CLI</a></li>
+        <li><a href="mcp.html">MCP</a></li>
+        <li><a href="spec-format.html">Spec format</a></li>
+        <li><a href="https://github.com/Anu-Code07/spec-copilot" target="_blank" rel="noopener">GitHub</a></li>
+        <li><a href="getting-started.html" class="nav-cta">Quick start</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <main>
+    <div class="container">
+      <header class="page-header">
+        <h1>Getting started</h1>
+        <p>Install SpecDrive and run your first frontend spec workflow.</p>
+      </header>
+
+      <section>
+        <h2>Prerequisites</h2>
+        <ul>
+          <li><strong>Node.js 20+</strong></li>
+          <li>An existing <strong>Flutter</strong>, <strong>Next.js</strong>, or <strong>React Native</strong> project</li>
+          <li>For CLI AI generation: <code>GEMINI_API_KEY</code> (free tier) or Ollama</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>1. Install</h2>
+        <pre><code># From npm (after publish)
+npm install -g @specdrive/cli
+
+# Or from source
+git clone https://github.com/Anu-Code07/spec-copilot.git
+cd spec-copilot && pnpm install && pnpm build</code></pre>
+      </section>
+
+      <section>
+        <h2>2. Initialize your project</h2>
+        <pre><code>cd your-flutter-app
+spec init --stack flutter   # or nextjs | react-native</code></pre>
+        <p>Creates <code>.specdrive/</code> with steering files, config, and empty <code>specs/</code> folder.</p>
+      </section>
+
+      <section>
+        <h2>3. Configure LLM (CLI mode)</h2>
+        <p>Add to <code>~/.zshrc</code> (macOS/Linux) or PowerShell profile (Windows):</p>
+        <pre><code>export GEMINI_API_KEY="your-key"   # https://aistudio.google.com</code></pre>
+        <div class="callout">
+          <div class="callout-title">MCP mode</div>
+          <p>If you use Cursor or Claude via MCP, you do <strong>not</strong> need a SpecDrive LLM key — your host AI generates the documents.</p>
+        </div>
+      </section>
+
+      <section>
+        <h2>4. Create a spec</h2>
+        <h3>Quick mode (all docs at once)</h3>
+        <pre><code>spec create "Product Review Screen" --quick
+spec implement --spec product-review-screen --next</code></pre>
+
+        <h3>Gated Kiro-style workflow</h3>
+        <pre><code>spec create "Product Review Screen"
+spec approve requirements --spec product-review-screen
+spec gap-analysis --spec product-review-screen
+spec approve gap-analysis --spec product-review-screen
+spec design --spec product-review-screen
+spec approve design --spec product-review-screen
+spec tasks --spec product-review-screen
+spec approve tasks --spec product-review-screen
+spec implement --spec product-review-screen --next</code></pre>
+      </section>
+
+      <section>
+        <h2>5. Validate setup</h2>
+        <pre><code>spec doctor
+spec list
+spec status --spec product-review-screen</code></pre>
+      </section>
+
+      <section>
+        <h2>Next steps</h2>
+        <ul>
+          <li><a href="mcp.html">Connect Cursor or Claude via MCP</a></li>
+          <li><a href="cli.html">Full CLI command reference</a></li>
+          <li><a href="spec-format.html">Understand spec document format</a></li>
+          <li><a href="https://github.com/Anu-Code07/spec-copilot/tree/main/examples">Example projects on GitHub</a></li>
+        </ul>
+      </section>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="footer-links">
+      <a href="index.html">Home</a>
+      <a href="https://github.com/Anu-Code07/spec-copilot">GitHub</a>
+    </div>
+    <p>SpecDrive documentation</p>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>
