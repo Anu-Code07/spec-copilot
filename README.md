@@ -48,18 +48,21 @@ Works with Cursor, Claude Code, Codex CLI, Gemini, Windsurf, Cline, Roo, Continu
 ## Quick Start
 
 ```bash
-git clone https://github.com/specdrive/specdrive.git
-cd specdrive
-pnpm install
+git clone https://github.com/Anu-Code07/spec-copilot.git
+cd spec-copilot
+pnpm install && pnpm build
 
-# Initialize in your frontend project (Phase 3)
+# In your frontend project
 spec init --stack flutter
-spec create "Add product review screen"
-spec approve requirements --spec product-review
-spec design --spec product-review
-spec approve design --spec product-review
-spec tasks --spec product-review
-spec implement --next
+spec create "Product Review Screen" --quick   # all 3 docs at once
+
+# Or gated Kiro-style workflow
+spec create "Product Review Screen"
+spec approve requirements --spec product-review-screen
+spec design --spec product-review-screen
+spec approve design --spec product-review-screen
+spec tasks --spec product-review-screen
+spec implement --spec product-review-screen --next
 ```
 
 ## Documentation
@@ -78,8 +81,8 @@ spec implement --next
 | Phase | Scope | Status |
 |-------|-------|--------|
 | **1** | Vision, architecture, frontend SDD direction | ✅ Complete |
-| **2** | Spec format, CLI design, domain model | 🔄 In progress |
-| **3** | Core implementation | Planned |
+| **2** | Spec format, CLI design, domain model | ✅ Complete |
+| **3** | Core implementation (CLI + spec engine) | ✅ Complete |
 | **4** | AI integrations (MCP, adapters) | Planned |
 | **5** | VS Code extension | Planned |
 | **6** | Documentation site | Planned |

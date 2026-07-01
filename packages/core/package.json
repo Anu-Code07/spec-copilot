@@ -13,7 +13,7 @@
     }
   },
   "scripts": {
-    "build": "tsc --emitDeclarationOnly && node ../../scripts/build.mjs",
+    "build": "tsc",
     "dev": "node ../../scripts/build.mjs --watch",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
