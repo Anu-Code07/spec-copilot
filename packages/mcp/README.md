@@ -5,20 +5,34 @@ Connect SpecDrive to Cursor, Claude Desktop, or any MCP client.
 ## Install
 
 ```bash
-pnpm install
-pnpm build
+npm install -g @specdrive/cli @specdrive/mcp
+# or
+pnpm add -g @specdrive/cli @specdrive/mcp
 ```
 
 ## Cursor configuration
 
-Add to `.cursor/mcp.json` (or Cursor MCP settings):
+Add to `.cursor/mcp.json`:
 
 ```json
 {
   "mcpServers": {
     "specdrive": {
-      "command": "node",
-      "args": ["/absolute/path/to/spec-copilot/packages/mcp/bin/mcp.js"],
+      "command": "npx",
+      "args": ["-y", "@specdrive/mcp"],
+      "cwd": "${workspaceFolder}"
+    }
+  }
+}
+```
+
+Or if installed globally:
+
+```json
+{
+  "mcpServers": {
+    "specdrive": {
+      "command": "specdrive-mcp",
       "cwd": "${workspaceFolder}"
     }
   }

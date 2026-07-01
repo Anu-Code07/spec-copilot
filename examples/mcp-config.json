@@ -1,8 +1,8 @@
 {
   "mcpServers": {
     "specdrive": {
-      "command": "node",
-      "args": ["${workspaceFolder}/node_modules/@specdrive/mcp/bin/mcp.js"],
+      "command": "npx",
+      "args": ["-y", "@specdrive/mcp"],
       "cwd": "${workspaceFolder}",
       "env": {
         "ANTHROPIC_API_KEY": "${env:ANTHROPIC_API_KEY}",

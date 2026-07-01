@@ -1,6 +1,6 @@
 {
   "name": "@specdrive/plugin-react-native",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "SpecDrive stack plugin for React Native — Expo, React Navigation",
   "license": "MIT",
   "type": "module",
@@ -12,7 +12,7 @@
     "clean": "rm -rf dist"
   },
   "dependencies": {
-    "@specdrive/core": "workspace:*"
+    "@specdrive/core": "^0.1.0"
   },
   "devDependencies": {
     "typescript": "^5.7.2"
@@ -20,5 +20,16 @@
   "specdrive": {
     "type": "stack",
     "stack": "react-native"
-  }
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Anu-Code07/spec-copilot.git",
+    "directory": "packages/plugins/react-native"
+  },
+  "files": [
+    "dist"
+  ]
 }

@@ -1,6 +1,6 @@
 {
   "name": "@specdrive/mcp",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "SpecDrive MCP server for Cursor, Claude, and AI clients",
   "license": "MIT",
   "type": "module",
@@ -15,11 +15,23 @@
     "clean": "rm -rf dist"
   },
   "dependencies": {
-    "@specdrive/core": "workspace:*",
+    "@specdrive/core": "^0.1.0",
     "@modelcontextprotocol/sdk": "^1.0.0"
   },
   "devDependencies": {
     "@types/node": "^22.10.2",
     "typescript": "^5.7.2"
-  }
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Anu-Code07/spec-copilot.git",
+    "directory": "packages/mcp"
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ]
 }
