@@ -1,0 +1,16 @@
+---
+description: SpecDrive Kiro-style frontend spec workflow — use MCP tools for requirements, gap-analysis, design, and tasks
+alwaysApply: false
+globs: ".specdrive/**"
+---
+
+When working on a SpecDrive feature:
+
+1. Run `spec init` in the project if `.specdrive/` is missing.
+2. Use MCP `create_spec` → generate markdown with your API → `write_spec_document`.
+3. Approve gates with `update_spec` between phases.
+4. Workflow order: requirements → gap-analysis → design → tasks → implement.
+5. SpecDrive MCP scans the repo; you (host AI) write the spec documents.
+6. `design.md` drives UI/UX — screens, components, navigation, state, a11y.
+
+Do not skip gap-analysis — it compares requirements to existing codebase before design.

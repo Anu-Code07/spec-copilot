@@ -2,7 +2,7 @@
   "mcpServers": {
     "specdrive": {
       "command": "npx",
-      "args": ["-y", "@specdrive/mcp"],
+      "args": ["-y", "@specdrive/mcp@0.1.0"],
       "cwd": "${workspaceFolder}"
     }
   }

@@ -28,6 +28,46 @@ Add to `.cursor/mcp.json`:
 }
 ```
 
+## Claude Desktop configuration
+
+Add to `claude_desktop_config.json`:
+
+- **macOS:** `~/Library/Application Support/Claude/claude_desktop_config.json`
+- **Windows:** `%APPDATA%\Claude\claude_desktop_config.json`
+
+```json
+{
+  "mcpServers": {
+    "specdrive": {
+      "command": "npx",
+      "args": ["-y", "@specdrive/mcp"],
+      "cwd": "/absolute/path/to/your/project"
+    }
+  }
+}
+```
+
+Replace `cwd` with your project root (where you ran `spec init`). Restart Claude Desktop.
+
+Or install globally:
+
+```bash
+npm install -g @specdrive/mcp
+```
+
+```json
+{
+  "mcpServers": {
+    "specdrive": {
+      "command": "specdrive-mcp",
+      "cwd": "/absolute/path/to/your/project"
+    }
+  }
+}
+```
+
+See [Marketplace submission guide](../../docs/MARKETPLACE-SUBMISSION.md) for Cursor Marketplace and Claude Directory listing.
+
 ## Workflow (MCP)
 
 ```

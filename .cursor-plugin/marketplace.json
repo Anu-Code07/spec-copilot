@@ -1,0 +1,29 @@
+{
+  "name": "specdrive",
+  "owner": {
+    "name": "SpecDrive",
+    "email": "specdrive@users.noreply.github.com"
+  },
+  "metadata": {
+    "description": "SpecDrive — frontend spec-driven development for Flutter, Next.js, and React Native",
+    "version": "0.1.0"
+  },
+  "plugins": [
+    {
+      "name": "specdrive",
+      "source": "integrations/cursor-plugin",
+      "description": "Kiro-style frontend specs: requirements → gap-analysis → design → tasks via MCP",
+      "version": "0.1.0",
+      "author": {
+        "name": "SpecDrive"
+      },
+      "homepage": "https://github.com/Anu-Code07/spec-copilot",
+      "repository": "https://github.com/Anu-Code07/spec-copilot",
+      "license": "MIT",
+      "keywords": ["spec-driven-development", "frontend", "flutter", "nextjs", "react-native", "mcp"],
+      "logo": "assets/logo.svg",
+      "category": "developer-tools",
+      "tags": ["sdd", "specs", "ui", "requirements"]
+    }
+  ]
+}

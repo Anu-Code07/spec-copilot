@@ -1,0 +1,53 @@
+{
+  "manifest_version": "0.3",
+  "name": "specdrive",
+  "display_name": "SpecDrive",
+  "version": "0.1.0",
+  "description": "Frontend spec-driven development: requirements, gap-analysis, design, and tasks for Flutter, Next.js, and React Native.",
+  "long_description": "SpecDrive brings Kiro-style spec-driven development to frontend projects. The MCP server scans your repo and returns generation bundles — Claude writes requirements.md, gap-analysis.md, design.md, and tasks.md using your API. Workflow: create_spec → write_spec_document → approve gates → implement. Requires `spec init` in the project first.",
+  "author": {
+    "name": "SpecDrive",
+    "url": "https://github.com/Anu-Code07/spec-copilot"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Anu-Code07/spec-copilot"
+  },
+  "homepage": "https://github.com/Anu-Code07/spec-copilot",
+  "documentation": "https://github.com/Anu-Code07/spec-copilot/blob/main/packages/mcp/README.md",
+  "support": "https://github.com/Anu-Code07/spec-copilot/issues",
+  "icon": "icon.png",
+  "license": "MIT",
+  "privacy_policies": ["https://github.com/Anu-Code07/spec-copilot/blob/main/LICENSE"],
+  "keywords": ["spec-driven-development", "frontend", "flutter", "nextjs", "react-native", "requirements", "design"],
+  "tools": [
+    { "name": "create_spec", "description": "Scaffold a new feature spec and return requirements generation bundle" },
+    { "name": "read_spec", "description": "Read spec markdown documents" },
+    { "name": "update_spec", "description": "Approve a workflow gate" },
+    { "name": "generate_gap_analysis", "description": "Return gap-analysis generation bundle" },
+    { "name": "generate_design", "description": "Return design.md generation bundle" },
+    { "name": "generate_tasks", "description": "Return tasks.md generation bundle" },
+    { "name": "write_spec_document", "description": "Save generated markdown to the spec folder" },
+    { "name": "scan_codebase", "description": "Scan repo for relevant source context" },
+    { "name": "get_next_task", "description": "Get implementation context for next pending task" },
+    { "name": "complete_task", "description": "Mark a task as done in tasks.md" },
+    { "name": "review_code", "description": "Review implementation against design.md" },
+    { "name": "find_context", "description": "Read SpecDrive steering files" },
+    { "name": "read_architecture", "description": "Read structure and tech-stack steering" },
+    { "name": "search_specs", "description": "List all specs in the project" },
+    { "name": "get_spec_status", "description": "Get spec phase, gates, and task progress" }
+  ],
+  "tools_generated": false,
+  "server": {
+    "type": "node",
+    "entry_point": "server/index.js",
+    "mcp_config": {
+      "command": "node",
+      "args": ["${__dirname}/server/index.js"]
+    }
+  },
+  "compatibility": {
+    "claude_desktop": ">=0.10.0",
+    "platforms": ["darwin", "win32", "linux"]
+  }
+}

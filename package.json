@@ -15,6 +15,7 @@
     "lint": "turbo run lint",
     "test": "turbo run test",
     "typecheck": "turbo run typecheck",
+    "pack:claude-extension": "node scripts/pack-claude-extension.mjs",
     "clean": "turbo run clean && rm -rf node_modules"
   },
   "devDependencies": {
