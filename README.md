@@ -120,7 +120,30 @@ See [packages/mcp/README.md](packages/mcp/README.md) for Cursor MCP setup.
 | **4** | MCP server, AI generation, review engine | ✅ Complete |
 | **5** | VS Code extension | ✅ Complete |
 | **6** | Documentation site | ✅ Complete |
-| **7** | Example projects (Flutter, Next.js, RN) | Planned |
+| **7** | Example projects (Flutter, Next.js, RN) | ✅ Flutter spec sample |
+
+## Production readiness (v0.1.0)
+
+SpecDrive is ready for **real project use** when built from source. npm publish is the remaining step for `npx` install.
+
+| Check | Status |
+|-------|--------|
+| CI (typecheck, lint, test, smoke) | ✅ |
+| End-to-end CLI smoke test | ✅ `pnpm smoke` |
+| Release checklist | ✅ `pnpm release-check` |
+| MCP + CLI + review engine | ✅ |
+| Known limitations documented | ✅ [KNOWN-LIMITATIONS.md](docs/KNOWN-LIMITATIONS.md) |
+| npm publish | ⏳ Requires `NPM_TOKEN` |
+
+```bash
+# Verify before release
+pnpm install && pnpm build
+pnpm test
+pnpm smoke
+pnpm release-check
+```
+
+See [CHANGELOG.md](CHANGELOG.md) for version history.
 
 ## License
 

@@ -29,8 +29,17 @@ jobs:
       - name: Typecheck
         run: pnpm typecheck
 
+      - name: Lint
+        run: pnpm lint
+
       - name: Build
         run: pnpm build
 
       - name: Test
         run: pnpm test
+
+      - name: Release check
+        run: node scripts/release-check.mjs
+
+      - name: Smoke test
+        run: node scripts/smoke-test.mjs

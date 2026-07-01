@@ -38,7 +38,7 @@ export async function getImplementContext(
   const tasksContent = await readText(specPaths.tasks);
   const tasks = parseTasks(tasksContent);
 
-  let task = options.taskId
+  const task = options.taskId
     ? tasks.find((t) => t.id === options.taskId)
     : nextPendingTask(tasks);
 
