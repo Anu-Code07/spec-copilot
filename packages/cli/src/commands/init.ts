@@ -32,6 +32,7 @@ export function registerInit(program: Command): void {
         console.log(chalk.dim(`  Stack: ${stack}`));
         console.log('');
         console.log('Next: spec create "Your feature title"');
+        console.log(chalk.dim('  Tip: add export GEMINI_API_KEY="..." to ~/.zshrc (or PowerShell $PROFILE on Windows)'));
       } catch (error) {
         handleError(error);
       }

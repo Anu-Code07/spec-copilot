@@ -72,8 +72,28 @@ export async function doctorProject(projectRoot: string): Promise<DoctorIssue[]>
     issues.push({ level: 'warning', message: 'Missing specs/ directory' });
   }
 
-  if (issues.length === 0) {
-    issues.push({ level: 'info', message: 'SpecDrive project is healthy' });
+  const { ensureProfileEnvHydrated, hasAnyLlmApiKey, getPrimaryShellProfilePath } =
+    await import('../infrastructure/shell-profile-env.js');
+  await ensureProfileEnvHydrated();
+
+  if (process.env.SPECDRIVE_LLM_OFFLINE === '1') {
+    issues.push({ level: 'info', message: 'LLM: offline templates (SPECDRIVE_LLM_OFFLINE=1)' });
+  } else if (hasAnyLlmApiKey()) {
+    const backend = process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY
+      ? 'Gemini'
+      : 'Groq';
+    issues.push({ level: 'info', message: `LLM: ${backend} API key configured` });
+  } else if (process.env.SPECDRIVE_USE_OLLAMA === '1') {
+    issues.push({ level: 'info', message: 'LLM: Ollama mode (SPECDRIVE_USE_OLLAMA=1)' });
+  } else {
+    issues.push({
+      level: 'warning',
+      message: `LLM: no API key — add GEMINI_API_KEY to ${getPrimaryShellProfilePath()} or run with --api-key`,
+    });
+  }
+
+  if (issues.every((i) => i.level === 'info')) {
+    issues.unshift({ level: 'info', message: 'SpecDrive project is healthy' });
   }
 
   return issues;

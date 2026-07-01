@@ -19,6 +19,17 @@ export {
   nextSpecId,
 } from './infrastructure/files.js';
 
+export {
+  hydrateEnvFromShellProfiles,
+  ensureProfileEnvHydrated,
+  hasAnyLlmApiKey,
+  getLlmKeySetupInstructions,
+  getPrimaryShellProfilePath,
+  formatProfileExportLine,
+  getShellProfilePaths,
+  parseEnvFromShellProfile,
+} from './infrastructure/shell-profile-env.js';
+
 // Services
 export { initProject, doctorProject, SpecDriveError } from './services/project-service.js';
 export type { DoctorIssue } from './services/project-service.js';
@@ -58,6 +69,7 @@ export {
   createGenerationProvider,
   resolveLlmConfig,
   resolveFreeLlmConfig,
+  resolveFreeLlmConfigAsync,
   buildGenerationBundle,
   formatGenerationBundle,
 } from './ai/index.js';

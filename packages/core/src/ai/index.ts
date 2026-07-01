@@ -12,7 +12,7 @@ export function createGenerationProvider(_runtime: RuntimeMode = 'cli'): Generat
 }
 
 export { TemplateGenerationProvider } from './template-provider.js';
-export { FreeLlmGenerationProvider, resolveFreeLlmConfig } from './free-llm-provider.js';
+export { FreeLlmGenerationProvider, resolveFreeLlmConfig, resolveFreeLlmConfigAsync } from './free-llm-provider.js';
 export type { GenerationInput, GenerationProvider } from './types.js';
 export { resolveLlmConfig } from './types.js';
 export {

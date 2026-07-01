@@ -1,5 +1,10 @@
 import type { GenerationInput, GenerationProvider } from './types.js';
 import { TemplateGenerationProvider } from './template-provider.js';
+import { SpecDriveError } from '../services/project-service.js';
+import {
+  ensureProfileEnvHydrated,
+  getLlmKeySetupInstructions,
+} from '../infrastructure/shell-profile-env.js';
 
 export type FreeLlmBackend = 'gemini' | 'groq' | 'ollama';
 
@@ -10,7 +15,7 @@ export interface FreeLlmConfig {
   baseUrl?: string;
 }
 
-/** Resolve free LLM for npm/CLI — Gemini (free tier) → Groq → Ollama → template */
+/** Resolve free LLM for npm/CLI — Gemini → Groq → Ollama (opt-in) → null */
 export function resolveFreeLlmConfig(): FreeLlmConfig | null {
   if (process.env.SPECDRIVE_LLM_OFFLINE === '1') return null;
 
@@ -29,11 +34,19 @@ export function resolveFreeLlmConfig(): FreeLlmConfig | null {
       model: process.env.SPECDRIVE_LLM_MODEL ?? 'llama-3.3-70b-versatile',
     };
   }
-  return {
-    backend: 'ollama',
-    baseUrl: process.env.OLLAMA_HOST ?? 'http://127.0.0.1:11434',
-    model: process.env.SPECDRIVE_LLM_MODEL ?? 'llama3.2',
-  };
+  if (process.env.SPECDRIVE_USE_OLLAMA === '1') {
+    return {
+      backend: 'ollama',
+      baseUrl: process.env.OLLAMA_HOST ?? 'http://127.0.0.1:11434',
+      model: process.env.SPECDRIVE_LLM_MODEL ?? 'llama3.2',
+    };
+  }
+  return null;
+}
+
+export async function resolveFreeLlmConfigAsync(): Promise<FreeLlmConfig | null> {
+  await ensureProfileEnvHydrated();
+  return resolveFreeLlmConfig();
 }
 
 async function callGemini(config: FreeLlmConfig, prompt: string): Promise<string> {
@@ -111,14 +124,21 @@ ${codeCtx}
 Output ONLY valid Markdown. Analyze the codebase context to make docs specific to this repo.`;
 }
 
-/** CLI/npm provider: free LLM chain with template fallback */
+/** CLI/npm provider: reads shell profiles, then calls free LLM or throws */
 export class FreeLlmGenerationProvider implements GenerationProvider {
   readonly name = 'free-llm';
   private readonly template = new TemplateGenerationProvider();
 
   async generate(input: GenerationInput): Promise<string> {
+    await ensureProfileEnvHydrated();
     const config = resolveFreeLlmConfig();
-    if (!config) return this.template.generate(input);
+
+    if (!config) {
+      if (process.env.SPECDRIVE_LLM_OFFLINE === '1') {
+        return this.template.generate(input);
+      }
+      throw new SpecDriveError(getLlmKeySetupInstructions(), 'LLM_KEY_MISSING');
+    }
 
     const prompt = buildCliPrompt(input);
     try {
@@ -131,9 +151,14 @@ export class FreeLlmGenerationProvider implements GenerationProvider {
       if (config.backend === 'ollama') {
         return await callOllama(config, prompt);
       }
-    } catch {
-      // fall through to template
+    } catch (error) {
+      const detail = error instanceof Error ? error.message : String(error);
+      throw new SpecDriveError(
+        `LLM generation failed: ${detail}\n\n${getLlmKeySetupInstructions()}`,
+        'LLM_GENERATION_FAILED',
+      );
     }
-    return this.template.generate(input);
+
+    throw new SpecDriveError(getLlmKeySetupInstructions(), 'LLM_KEY_MISSING');
   }
 }

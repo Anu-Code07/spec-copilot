@@ -15,7 +15,9 @@ export async function requireProjectRoot(): Promise<string> {
 export function handleError(error: unknown): never {
   if (error instanceof SpecDriveError) {
     console.error(`Error: ${error.message}`);
-    process.exit(error.code === 'GATE_NOT_APPROVED' ? 3 : 1);
+    if (error.code === 'GATE_NOT_APPROVED') process.exit(3);
+    if (error.code === 'LLM_KEY_MISSING') process.exit(2);
+    process.exit(1);
   }
   throw error;
 }

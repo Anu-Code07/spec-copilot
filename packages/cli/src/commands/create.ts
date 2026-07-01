@@ -2,6 +2,7 @@ import { Command } from 'commander';
 import chalk from 'chalk';
 import { createSpec } from '@specdrive/core';
 import { handleError, requireProjectRoot } from '../context.js';
+import { ensureCliLlmReady } from '../llm-setup.js';
 
 export function registerCreate(program: Command): void {
   program
@@ -12,13 +13,21 @@ export function registerCreate(program: Command): void {
     .option('--design-first', 'Design-first workflow (future: starts from UI concept)')
     .option('--type <type>', 'Spec type: feature or bugfix', 'feature')
     .option('-d, --description <text>', 'Detailed description')
+    .option('--api-key <key>', 'Gemini API key for this session (or add to ~/.zshrc)')
     .action(
       async (
         title: string,
-        opts: { quick?: boolean; designFirst?: boolean; type: string; description?: string },
+        opts: {
+          quick?: boolean;
+          designFirst?: boolean;
+          type: string;
+          description?: string;
+          apiKey?: string;
+        },
       ) => {
         try {
           const root = await requireProjectRoot();
+          await ensureCliLlmReady({ apiKey: opts.apiKey });
           const result = await createSpec(root, {
             title,
             description: opts.description,
