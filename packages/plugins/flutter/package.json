@@ -1,0 +1,24 @@
+{
+  "name": "@specdrive/plugin-flutter",
+  "version": "0.0.0",
+  "description": "SpecDrive stack plugin for Flutter — Clean Architecture, Riverpod, widget tests",
+  "license": "MIT",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "typecheck": "tsc --noEmit",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "@specdrive/core": "workspace:*"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.2"
+  },
+  "specdrive": {
+    "type": "stack",
+    "stack": "flutter"
+  }
+}

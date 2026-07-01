@@ -1,0 +1,21 @@
+specdriveVersion: "1.0"
+id: SPEC-001
+slug: product-review
+title: Product Review Screen
+type: feature
+stack: flutter
+created: 2026-06-30
+updated: 2026-06-30
+phase: tasks
+gates:
+  requirements:
+    status: approved
+    approvedAt: 2026-06-30T10:00:00Z
+  design:
+    status: approved
+    approvedAt: 2026-06-30T11:00:00Z
+  tasks:
+    status: approved
+    approvedAt: 2026-06-30T12:00:00Z
+requirements: [REQ-001, REQ-002, REQ-003]
+tasks: [TASK-001, TASK-002, TASK-003, TASK-004]

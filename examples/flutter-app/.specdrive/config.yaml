@@ -1,0 +1,11 @@
+specdriveVersion: "1.0"
+stack: flutter
+workflow:
+  default: requirements-first
+  requireApproval: true
+generation:
+  provider: mcp
+  askClarifyingQuestions: true
+review:
+  accessibility: true
+  designCompliance: true

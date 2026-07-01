@@ -1,0 +1,80 @@
+import { mkdir } from 'node:fs/promises';
+import type { FrontendStack } from '../domain/types.js';
+import { defaultProjectPaths, defaultSteeringPaths } from '../domain/paths.js';
+import { fileExists, writeText } from '../infrastructure/files.js';
+import {
+  configYaml,
+  productMd,
+  techStackMd,
+  structureMd,
+  codingStyleMd,
+} from '../templates/steering.js';
+
+export class SpecDriveError extends Error {
+  constructor(
+    message: string,
+    readonly code: string,
+  ) {
+    super(message);
+    this.name = 'SpecDriveError';
+  }
+}
+
+export async function initProject(
+  projectRoot: string,
+  stack: FrontendStack,
+): Promise<{ paths: ReturnType<typeof defaultProjectPaths> }> {
+  const paths = defaultProjectPaths(projectRoot);
+  const steering = defaultSteeringPaths(paths.specdrive);
+
+  if (await fileExists(paths.config)) {
+    throw new SpecDriveError(
+      'SpecDrive already initialized. .specdrive/config.yaml exists.',
+      'ALREADY_INITIALIZED',
+    );
+  }
+
+  await mkdir(paths.specs, { recursive: true });
+  await mkdir(paths.decisions, { recursive: true });
+  await mkdir(paths.reviews, { recursive: true });
+
+  await writeText(paths.config, configYaml(stack));
+  await writeText(steering.product, productMd());
+  await writeText(steering.techStack, techStackMd(stack));
+  await writeText(steering.structure, structureMd(stack));
+  await writeText(steering.codingStyle, codingStyleMd(stack));
+
+  return { paths };
+}
+
+export interface DoctorIssue {
+  level: 'error' | 'warning' | 'info';
+  message: string;
+}
+
+export async function doctorProject(projectRoot: string): Promise<DoctorIssue[]> {
+  const paths = defaultProjectPaths(projectRoot);
+  const steering = defaultSteeringPaths(paths.specdrive);
+  const issues: DoctorIssue[] = [];
+
+  if (!(await fileExists(paths.config))) {
+    issues.push({ level: 'error', message: 'Missing .specdrive/config.yaml — run spec init' });
+    return issues;
+  }
+
+  for (const [name, filePath] of Object.entries(steering)) {
+    if (!(await fileExists(filePath))) {
+      issues.push({ level: 'warning', message: `Missing steering file: ${name} (${filePath})` });
+    }
+  }
+
+  if (!(await fileExists(paths.specs))) {
+    issues.push({ level: 'warning', message: 'Missing specs/ directory' });
+  }
+
+  if (issues.length === 0) {
+    issues.push({ level: 'info', message: 'SpecDrive project is healthy' });
+  }
+
+  return issues;
+}

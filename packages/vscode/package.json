@@ -1,0 +1,114 @@
+{
+  "name": "specdrive-vscode",
+  "displayName": "SpecDrive",
+  "description": "Frontend spec-driven development — spec explorer, task panel, design.md review",
+  "version": "0.0.0",
+  "publisher": "specdrive",
+  "license": "MIT",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": ["Other"],
+  "activationEvents": [
+    "workspaceContains:.specdrive/config.yaml"
+  ],
+  "main": "./dist/extension.js",
+  "contributes": {
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "specdrive",
+          "title": "SpecDrive",
+          "icon": "$(notebook)"
+        }
+      ]
+    },
+    "views": {
+      "specdrive": [
+        {
+          "id": "specdrive.specs",
+          "name": "Specs"
+        },
+        {
+          "id": "specdrive.tasks",
+          "name": "Tasks"
+        }
+      ]
+    },
+    "commands": [
+      {
+        "command": "specdrive.refresh",
+        "title": "Refresh",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "specdrive.createSpec",
+        "title": "SpecDrive: Create Feature Spec"
+      },
+      {
+        "command": "specdrive.implementNext",
+        "title": "SpecDrive: Implement Next Task"
+      },
+      {
+        "command": "specdrive.review",
+        "title": "SpecDrive: Review Against Design"
+      },
+      {
+        "command": "specdrive.openDesign",
+        "title": "SpecDrive: Open design.md"
+      },
+      {
+        "command": "specdrive.completeTask",
+        "title": "SpecDrive: Mark Task Complete"
+      },
+      {
+        "command": "specdrive.selectSpec",
+        "title": "Select Spec"
+      }
+    ],
+    "menus": {
+      "view/title": [
+        {
+          "command": "specdrive.refresh",
+          "when": "view == specdrive.specs || view == specdrive.tasks",
+          "group": "navigation"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "specdrive.openDesign",
+          "when": "view == specdrive.specs && viewItem == spec",
+          "group": "inline"
+        },
+        {
+          "command": "specdrive.implementNext",
+          "when": "view == specdrive.specs && viewItem == spec",
+          "group": "1_spec"
+        },
+        {
+          "command": "specdrive.review",
+          "when": "view == specdrive.specs && viewItem == spec",
+          "group": "1_spec"
+        },
+        {
+          "command": "specdrive.completeTask",
+          "when": "view == specdrive.tasks && viewItem == taskPending",
+          "group": "1_task"
+        }
+      ]
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "typecheck": "tsc --noEmit",
+    "clean": "rm -rf dist"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.2",
+    "@types/vscode": "^1.85.0",
+    "typescript": "^5.7.2"
+  },
+  "dependencies": {
+    "@specdrive/core": "workspace:*"
+  }
+}

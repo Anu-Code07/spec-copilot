@@ -1,0 +1,25 @@
+{
+  "name": "@specdrive/mcp",
+  "version": "0.0.0",
+  "description": "SpecDrive MCP server for Cursor, Claude, and AI clients",
+  "license": "MIT",
+  "type": "module",
+  "bin": {
+    "specdrive-mcp": "./bin/mcp.js"
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "typecheck": "tsc --noEmit",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "@specdrive/core": "workspace:*",
+    "@modelcontextprotocol/sdk": "^1.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.2",
+    "typescript": "^5.7.2"
+  }
+}

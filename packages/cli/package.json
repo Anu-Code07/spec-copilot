@@ -1,0 +1,26 @@
+{
+  "name": "@specdrive/cli",
+  "version": "0.0.0",
+  "description": "SpecDrive CLI — frontend spec-driven development",
+  "license": "MIT",
+  "type": "module",
+  "bin": {
+    "spec": "./bin/spec.js"
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "typecheck": "tsc --noEmit",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "@specdrive/core": "workspace:*",
+    "chalk": "^5.3.0",
+    "commander": "^12.1.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.2",
+    "typescript": "^5.7.2"
+  }
+}
