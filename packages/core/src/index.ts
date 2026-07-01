@@ -60,6 +60,7 @@ export {
   getImplementContext,
   formatImplementContext,
 } from './services/implement-service.js';
+export type { ImplementResult } from './services/implement-service.js';
 
 export { reviewSpec } from './services/review-service.js';
 export { formatReviewReport, runReview } from '@specdrive/review-engine';
@@ -82,3 +83,33 @@ export type {
 } from './ai/index.js';
 
 export { SPECDRIVE_VERSION } from './domain/types.js';
+
+export {
+  stackToFramework,
+  extractFigmaFileKey,
+  resolveFigmaToken,
+  requireFigmaToken,
+  loadDesign2CodeConfig,
+  resolveSpecFigmaFileKey,
+  classifyTaskForDesign2Code,
+  tryExecuteUiTaskWithDesign2Code,
+  getFigmaTokenSetupInstructions,
+  getDesign2CodeInstallInstructions,
+  isDesign2CodeAvailable,
+  resolveDesignSystemPath,
+  importFigmaDesign,
+  generateFromDesign,
+  generateFigmaForSpec,
+  detectDesign2CodeProject,
+  getFigmaIntegrationStatus,
+  readSpecDesignExcerpt,
+} from './integrations/design2code-service.js';
+export type {
+  Design2CodeFramework,
+  Design2CodeScope,
+  Design2CodeMergeStrategy,
+  Design2CodeFileSummary,
+  Design2CodeGenerateResult,
+  Design2CodeImportResult,
+  Design2CodeTaskAttempt,
+} from './integrations/design2code-service.js';

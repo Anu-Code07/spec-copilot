@@ -4,6 +4,8 @@ import { join } from 'node:path';
 import { fileExists } from './files.js';
 
 export const LLM_ENV_KEYS = ['GEMINI_API_KEY', 'GOOGLE_API_KEY', 'GROQ_API_KEY'] as const;
+export const FIGMA_ENV_KEYS = ['FIGMA_TOKEN', 'FIGMA_ACCESS_TOKEN'] as const;
+export const PROFILE_ENV_KEYS = [...LLM_ENV_KEYS, ...FIGMA_ENV_KEYS] as const;
 
 let profileHydrated = false;
 
@@ -15,7 +17,7 @@ export function parseEnvFromShellProfile(content: string): Record<string, string
     const line = rawLine.trim();
     if (!line || line.startsWith('#')) continue;
 
-    for (const key of LLM_ENV_KEYS) {
+    for (const key of PROFILE_ENV_KEYS) {
       const patterns = [
         new RegExp(`^export\\s+${key}\\s*=\\s*["']([^"']+)["']\\s*$`),
         new RegExp(`^export\\s+${key}\\s*=\\s*([^\\s#]+)\\s*$`),

@@ -80,14 +80,14 @@ export function activate(context: vscode.ExtensionContext): void {
       if (!root) return;
 
       try {
-        const ctx = await getImplementContext(root, { spec: slug });
+        const result = await getImplementContext(root, { spec: slug });
         const panel = vscode.window.createWebviewPanel(
           'specdriveImplement',
-          `Implement: ${ctx.task.id}`,
+          `Implement: ${result.context.task.id}`,
           vscode.ViewColumn.Beside,
           { enableScripts: false },
         );
-        panel.webview.html = `<pre style="font-family:monospace;padding:1em;white-space:pre-wrap">${escapeHtml(formatImplementContext(ctx))}</pre>`;
+        panel.webview.html = `<pre style="font-family:monospace;padding:1em;white-space:pre-wrap">${escapeHtml(formatImplementContext(result))}</pre>`;
         selectedSpecSlug = slug;
         taskProvider.setSelectedSlug(slug);
       } catch (err) {
