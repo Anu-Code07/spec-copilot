@@ -12,17 +12,22 @@
   "scripts": {
     "build": "turbo run build",
     "dev": "turbo run dev",
-    "lint": "turbo run lint",
+    "lint": "eslint \"packages/**/src/**/*.ts\" \"scripts/**/*.mjs\"",
     "test": "turbo run test",
     "typecheck": "turbo run typecheck",
+    "smoke": "pnpm build && node scripts/smoke-test.mjs",
+    "release-check": "node scripts/release-check.mjs",
     "pack:claude-extension": "node scripts/pack-claude-extension.mjs",
     "clean": "turbo run clean && rm -rf node_modules"
   },
   "devDependencies": {
+    "@eslint/js": "^9.17.0",
     "@types/node": "^22.10.2",
     "esbuild": "^0.24.0",
+    "eslint": "^9.17.0",
     "turbo": "^2.3.3",
     "typescript": "^5.7.2",
+    "typescript-eslint": "^8.18.0",
     "vitest": "^2.1.8"
   }
 }
