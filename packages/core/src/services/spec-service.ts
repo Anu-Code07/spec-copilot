@@ -21,13 +21,9 @@ import {
   saveMeta,
   writeText,
 } from '../infrastructure/files.js';
-import {
-  requirementsMd,
-  defaultRequirements,
-  designMd,
-  tasksMd,
-  bugfixMd,
-} from '../templates/spec-docs.js';
+import { defaultRequirements } from '../templates/spec-docs.js';
+import { createGenerationProvider } from '../ai/index.js';
+import { loadSteeringContent } from './steering-service.js';
 
 function pendingGate(): FeatureSpecMeta['gates'] {
   return {
@@ -88,15 +84,37 @@ export async function createSpec(
   };
 
   if (type === 'bugfix') {
-    await writeText(specPaths.bugfix, bugfixMd(options.title, description));
+    const steering = await loadSteeringContent(projectRoot);
+    const provider = createGenerationProvider(config);
+    const bugfixContent = await provider.generate({
+      kind: 'bugfix',
+      title: options.title,
+      description,
+      stack: config.stack,
+      slug,
+      steering,
+    });
+    await writeText(specPaths.bugfix, bugfixContent);
     meta.phase = 'implementing';
     meta.gates.requirements = { status: 'approved', approvedAt: nowIso(), approvedBy: 'developer' };
     generated.push('bugfix');
     await saveMeta(specPaths.meta, meta);
   } else {
-    const reqs = defaultRequirements(options.title, description);
-    meta.requirements = reqs.map((r) => r.id);
-    await writeText(specPaths.requirements, requirementsMd(options.title, description, reqs));
+    const steering = await loadSteeringContent(projectRoot);
+    const provider = createGenerationProvider(config);
+    const reqContent = await provider.generate({
+      kind: 'requirements',
+      title: options.title,
+      description,
+      stack: config.stack,
+      slug,
+      steering,
+    });
+    const reqs = parseRequirements(reqContent);
+    meta.requirements = reqs.length
+      ? reqs.map((r) => r.id)
+      : defaultRequirements(options.title, description).map((r) => r.id);
+    await writeText(specPaths.requirements, reqContent);
     generated.push('requirements');
     await saveMeta(specPaths.meta, meta);
 
@@ -181,9 +199,19 @@ export async function generateDesign(
     );
   }
 
+  const config = await loadConfig(projectRoot);
   const reqContent = await readText(specPaths.requirements);
-  const requirements = parseRequirements(reqContent);
-  const content = designMd(meta.title, slug, meta.stack, requirements);
+  const steering = await loadSteeringContent(projectRoot);
+  const provider = createGenerationProvider(config);
+  const content = await provider.generate({
+    kind: 'design',
+    title: meta.title,
+    description: meta.description ?? meta.title,
+    stack: meta.stack,
+    slug,
+    requirementsContent: reqContent,
+    steering,
+  });
   await writeText(specPaths.design, content);
   meta.phase = 'design';
   await saveMeta(specPaths.meta, meta);
@@ -213,9 +241,23 @@ export async function generateTasks(
     );
   }
 
+  const config = await loadConfig(projectRoot);
   const reqContent = await readText(specPaths.requirements);
-  const requirements = parseRequirements(reqContent);
-  const content = tasksMd(meta.title, slug, meta.stack, requirements);
+  const designContent = (await fileExists(specPaths.design))
+    ? await readText(specPaths.design)
+    : '';
+  const steering = await loadSteeringContent(projectRoot);
+  const provider = createGenerationProvider(config);
+  const content = await provider.generate({
+    kind: 'tasks',
+    title: meta.title,
+    description: meta.description ?? meta.title,
+    stack: meta.stack,
+    slug,
+    requirementsContent: reqContent,
+    designContent,
+    steering,
+  });
   await writeText(specPaths.tasks, content);
 
   meta.tasks = [...content.matchAll(/TASK-\d{3}/g)].map((m) => m[0]);

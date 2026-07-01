@@ -46,7 +46,7 @@ export interface ProjectConfig {
     requireApproval: boolean;
   };
   generation: {
-    provider: 'template' | 'mcp';
+    provider: 'template' | 'llm' | 'mcp';
     askClarifyingQuestions: boolean;
   };
   review: {

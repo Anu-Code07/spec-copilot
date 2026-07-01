@@ -65,6 +65,22 @@ spec tasks --spec product-review-screen
 spec implement --spec product-review-screen --next
 ```
 
+## MCP + AI + Review
+
+```bash
+# MCP server (for Cursor / Claude)
+node packages/mcp/bin/mcp.js
+
+# AI-powered generation (set OPENAI_API_KEY or ANTHROPIC_API_KEY)
+# Update .specdrive/config.yaml: generation.provider: llm
+spec create "Checkout flow" --quick
+
+# Review against design.md
+spec review --spec product-review-screen --ci
+```
+
+See [packages/mcp/README.md](packages/mcp/README.md) for Cursor MCP setup.
+
 ## Documentation
 
 | Document | Description |
@@ -83,8 +99,8 @@ spec implement --spec product-review-screen --next
 | **1** | Vision, architecture, frontend SDD direction | ✅ Complete |
 | **2** | Spec format, CLI design, domain model | ✅ Complete |
 | **3** | Core implementation (CLI + spec engine) | ✅ Complete |
-| **4** | AI integrations (MCP, adapters) | Planned |
-| **5** | VS Code extension | Planned |
+| **4** | MCP server, AI generation, review engine | ✅ Complete |
+| **5** | VS Code extension | ✅ Complete |
 | **6** | Documentation site | Planned |
 | **7** | Example projects (Flutter, Next.js, RN) | Planned |
 

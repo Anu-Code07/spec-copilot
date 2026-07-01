@@ -39,4 +39,11 @@ export {
   formatImplementContext,
 } from './services/implement-service.js';
 
+export { reviewSpec } from './services/review-service.js';
+export { formatReviewReport, runReview } from '@specdrive/review-engine';
+export type { ReviewReport } from '@specdrive/review-engine';
+export { loadSteeringContent } from './services/steering-service.js';
+export { createGenerationProvider, resolveLlmConfig } from './ai/index.js';
+export type { GenerationInput, GenerationProvider } from './ai/index.js';
+
 export { SPECDRIVE_VERSION } from './domain/types.js';

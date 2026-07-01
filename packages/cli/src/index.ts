@@ -9,6 +9,7 @@ import { registerImplement } from './commands/implement.js';
 import { registerStatus } from './commands/status.js';
 import { registerList } from './commands/list.js';
 import { registerDoctor } from './commands/doctor.js';
+import { registerReview } from './commands/review.js';
 
 export function run(argv: string[]): void {
   const program = new Command();
@@ -27,6 +28,7 @@ export function run(argv: string[]): void {
   registerStatus(program);
   registerList(program);
   registerDoctor(program);
+  registerReview(program);
 
   program.parse(argv);
 }
