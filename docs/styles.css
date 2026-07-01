@@ -711,6 +711,12 @@ li { margin-bottom: 0.4rem; }
 .site-footer a { color: var(--text-muted); }
 .site-footer a:hover { color: var(--accent); }
 
+.footer-credit {
+  margin-top: 0.75rem;
+  font-size: 0.8125rem;
+  color: var(--text-dim);
+}
+
 /* Reduced motion */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
