@@ -2,49 +2,68 @@
 
 Static documentation site for [GitHub Pages](https://pages.github.com/).
 
+**Live URL:** https://anu-code07.github.io/spec-copilot/
+
 ## Local preview
 
 ```bash
 cd docs-site
 npx serve .
-# Open http://localhost:3000
+# Open http://localhost:3000  → serves index.html as homepage
 ```
 
-Or with Python:
+## GitHub Pages setup (required once)
 
-```bash
-cd docs-site && python3 -m http.server 8080
-```
+The deploy workflow pushes `docs-site/` to the **`gh-pages`** branch.
 
-## GitHub Pages setup
+1. Go to **https://github.com/Anu-Code07/spec-copilot/settings/pages**
+2. Under **Build and deployment → Source**, choose **Deploy from a branch**
+3. **Branch:** `gh-pages` · **Folder:** `/ (root)`
+4. Click **Save**
+5. Re-run the workflow: **Actions → Deploy documentation site → Run workflow**
 
-1. Push to `main` — the **Deploy documentation site** workflow publishes automatically.
-2. In repo **Settings → Pages → Build and deployment**:
-   - Source: **GitHub Actions**
-3. Site URL: `https://anu-code07.github.io/spec-copilot/`
+After ~1 minute, the site is live at:
+
+**https://anu-code07.github.io/spec-copilot/**
+
+(`index.html` is the homepage — no extra path needed.)
+
+## Troubleshooting
+
+### `Failed to create deployment (status: 404)`
+
+This happens when **GitHub Actions** is selected as the Pages source but Pages is not fully enabled.
+
+**Fix:** Use **Deploy from a branch** → `gh-pages` → `/ (root)` as described above (this repo's workflow uses the `gh-pages` branch, not the Actions artifact method).
+
+### Site shows 404 after deploy
+
+- Wait 2–5 minutes for DNS/cache
+- Confirm `gh-pages` branch exists and contains `index.html` at root
+- Confirm Pages source points to `gh-pages` / root
 
 ## Pages
 
-| File | Content |
-|------|---------|
-| `index.html` | Landing page |
-| `getting-started.html` | Install and first workflow |
-| `cli.html` | CLI command reference |
-| `mcp.html` | Cursor & Claude MCP setup |
-| `spec-format.html` | Spec document format |
+| File | URL path |
+|------|----------|
+| `index.html` | `/` |
+| `getting-started.html` | `/getting-started.html` |
+| `cli.html` | `/cli.html` |
+| `mcp.html` | `/mcp.html` |
+| `spec-format.html` | `/spec-format.html` |
 
 ## Structure
 
 ```
 docs-site/
-├── index.html
+├── index.html          ← homepage (required for GitHub Pages)
 ├── getting-started.html
 ├── cli.html
 ├── mcp.html
 ├── spec-format.html
 ├── styles.css
 ├── script.js
-└── .nojekyll          # Disable Jekyll processing
+└── .nojekyll
 ```
 
-No build step required — plain HTML/CSS/JS.
+No build step — plain HTML/CSS/JS.

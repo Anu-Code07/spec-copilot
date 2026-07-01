@@ -97,7 +97,7 @@ See [packages/mcp/README.md](packages/mcp/README.md) for Cursor MCP setup.
 
 ## Documentation
 
-**Docs site:** [https://anu-code07.github.io/spec-copilot/](https://anu-code07.github.io/spec-copilot/) (GitHub Pages)
+**Docs site:** [https://anu-code07.github.io/spec-copilot/](https://anu-code07.github.io/spec-copilot/) — enable Pages: Settings → Pages → branch `gh-pages` / root ([setup](docs-site/README.md))
 
 | Document | Description |
 |----------|-------------|
