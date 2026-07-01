@@ -1,13 +1,15 @@
 import type { FrontendStack } from '../domain/types.js';
 
 export interface GenerationInput {
-  kind: 'requirements' | 'design' | 'tasks' | 'bugfix';
+  kind: 'requirements' | 'gap-analysis' | 'design' | 'tasks' | 'bugfix';
   title: string;
   description: string;
   stack: FrontendStack;
   slug: string;
   requirementsContent?: string;
+  gapAnalysisContent?: string;
   designContent?: string;
+  codebaseContextFormatted?: string;
   steering: {
     product?: string;
     techStack?: string;

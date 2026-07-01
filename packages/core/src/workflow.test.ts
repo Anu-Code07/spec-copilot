@@ -6,6 +6,7 @@ import {
   initProject,
   createSpec,
   approveGate,
+  generateGapAnalysis,
   generateDesign,
   generateTasks,
   getSpecStatus,
@@ -19,11 +20,13 @@ describe('SpecDrive workflow', () => {
   let projectRoot: string;
 
   beforeEach(async () => {
+    process.env.SPECDRIVE_LLM_OFFLINE = '1';
     projectRoot = await mkdtemp(join(tmpdir(), 'specdrive-'));
     await initProject(projectRoot, 'flutter');
   });
 
   afterEach(async () => {
+    delete process.env.SPECDRIVE_LLM_OFFLINE;
     await rm(projectRoot, { recursive: true, force: true });
   });
 
@@ -51,6 +54,8 @@ describe('SpecDrive workflow', () => {
     });
 
     await approveGate(projectRoot, slug, 'requirements');
+    await generateGapAnalysis(projectRoot, slug);
+    await approveGate(projectRoot, slug, 'gap_analysis');
     await generateDesign(projectRoot, slug);
     await approveGate(projectRoot, slug, 'design');
     await generateTasks(projectRoot, slug);
@@ -67,7 +72,9 @@ describe('SpecDrive workflow', () => {
       quick: true,
     });
 
-    expect(generated).toEqual(expect.arrayContaining(['requirements', 'design', 'tasks']));
+    expect(generated).toEqual(
+      expect.arrayContaining(['requirements', 'gap-analysis', 'design', 'tasks']),
+    );
     const status = await getSpecStatus(projectRoot, slug);
     expect(status.meta.phase).toBe('implementing');
     expect(status.tasksTotal).toBe(6);
@@ -95,9 +102,10 @@ describe('SpecDrive workflow', () => {
     expect(ctx.task.id).not.toBe('TASK-001');
   });
 
-  it('blocks design without requirements approval', async () => {
+  it('blocks design without gap analysis approval', async () => {
     const { slug } = await createSpec(projectRoot, { title: 'Checkout Flow' });
 
+    await approveGate(projectRoot, slug, 'requirements');
     await expect(generateDesign(projectRoot, slug)).rejects.toThrow(SpecDriveError);
   });
 

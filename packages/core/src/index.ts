@@ -26,13 +26,24 @@ export type { DoctorIssue } from './services/project-service.js';
 export {
   createSpec,
   approveGate,
+  generateGapAnalysis,
   generateDesign,
   generateTasks,
+  getMcpGenerationBundle,
   listSpecs,
   getSpecStatus,
   completeTask,
   resolveSpecSlug,
 } from './services/spec-service.js';
+
+export {
+  getGenerationBundle,
+  generateDocumentCli,
+  writeSpecDocument,
+  scanCodebaseContext,
+  formatCodebaseContext,
+  formatBundleForMcp,
+} from './services/generation-service.js';
 
 export {
   getImplementContext,
@@ -43,7 +54,19 @@ export { reviewSpec } from './services/review-service.js';
 export { formatReviewReport, runReview } from '@specdrive/review-engine';
 export type { ReviewReport } from '@specdrive/review-engine';
 export { loadSteeringContent } from './services/steering-service.js';
-export { createGenerationProvider, resolveLlmConfig } from './ai/index.js';
-export type { GenerationInput, GenerationProvider } from './ai/index.js';
+export {
+  createGenerationProvider,
+  resolveLlmConfig,
+  resolveFreeLlmConfig,
+  buildGenerationBundle,
+  formatGenerationBundle,
+} from './ai/index.js';
+export type {
+  GenerationInput,
+  GenerationProvider,
+  GenerationBundle,
+  SpecDocument,
+  RuntimeMode,
+} from './ai/index.js';
 
 export { SPECDRIVE_VERSION } from './domain/types.js';

@@ -36,6 +36,8 @@ export function registerCreate(program: Command): void {
             console.log('');
             console.log('Next steps:');
             console.log(`  spec approve requirements --spec ${result.slug}`);
+            console.log(`  spec gap-analysis --spec ${result.slug}`);
+            console.log(`  spec approve gap-analysis --spec ${result.slug}`);
             console.log(`  spec design --spec ${result.slug}`);
           } else if (opts.quick) {
             console.log('');

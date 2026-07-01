@@ -1,6 +1,6 @@
 # Specification Format v1.0
 
-Frontend-first, Kiro-compatible spec format. Every feature produces three linked documents.
+Frontend-first, Kiro-compatible spec format. Every feature produces four linked documents (plus optional bugfix).
 
 ## Directory Structure
 
@@ -15,8 +15,9 @@ Frontend-first, Kiro-compatible spec format. Every feature produces three linked
 │   └── {feature-slug}/
 │       ├── meta.yaml              # Feature metadata, phase gates, approvals
 │       ├── requirements.md        # Phase 1: WHAT
-│       ├── design.md              # Phase 2: UI/UX HOW
-│       ├── tasks.md               # Phase 3: implementation plan
+│       ├── gap-analysis.md        # Phase 2: codebase gaps vs requirements
+│       ├── design.md              # Phase 3: UI/UX HOW
+│       ├── tasks.md               # Phase 4: implementation plan
 │       └── bugfix.md              # Alternative for bugfix specs
 ├── decisions/
 │   └── 001-use-riverpod.md
@@ -37,11 +38,15 @@ type: feature  # feature | bugfix
 stack: flutter
 created: 2026-06-30
 updated: 2026-06-30
-phase: tasks  # requirements | design | tasks | implementing | done
+phase: gap_analysis  # requirements | gap_analysis | design | tasks | implementing | done
 gates:
   requirements:
     status: approved
     approvedAt: 2026-06-30T10:00:00Z
+    approvedBy: developer
+  gap_analysis:
+    status: approved
+    approvedAt: 2026-06-30T10:30:00Z
     approvedBy: developer
   design:
     status: approved
@@ -117,9 +122,34 @@ Brief description of the feature and user value.
 | State-driven | While `<state>`, the `<system>` shall `<action>` | While loading, the app shall show skeleton UI |
 | Optional | Where `<feature>`, the `<system>` shall `<action>` | Where biometric auth enabled, the app shall offer Face ID |
 
+## gap-analysis.md
+
+**Codebase gap document** — compares approved requirements against the existing repo. Generated after requirements approval, before design.
+
+### Purpose
+
+- Inventory what already exists (screens, routes, components, state)
+- Map each requirement to existing vs missing implementation
+- List files to create/modify and architecture gaps
+- Inform `design.md` so UI specs only cover what's actually needed
+
+### Template sections
+
+- Executive Summary
+- Existing Code Inventory
+- Requirements Coverage Matrix
+- Gaps to Bridge
+- Files to Create / Files to Modify
+- Architecture Gaps
+- Dependencies & Risks
+- Recommended Implementation Order
+
+CLI: `spec gap-analysis --spec <slug>` (uses free LLM + codebase scan).  
+MCP: `generate_gap_analysis` returns a bundle for host AI generation.
+
 ## design.md
 
-**UI/UX blueprint** — the primary frontend design artifact. Generated from approved `requirements.md` + codebase analysis + steering files.
+**UI/UX blueprint** — the primary frontend design artifact. Generated from approved `requirements.md`, `gap-analysis.md`, and steering files.
 
 ### Template
 

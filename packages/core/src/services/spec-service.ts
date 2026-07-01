@@ -22,12 +22,17 @@ import {
   writeText,
 } from '../infrastructure/files.js';
 import { defaultRequirements } from '../templates/spec-docs.js';
-import { createGenerationProvider } from '../ai/index.js';
-import { loadSteeringContent } from './steering-service.js';
+import {
+  generateDocumentCli,
+  getGenerationBundle,
+  formatBundleForMcp,
+} from './generation-service.js';
+import type { SpecDocument } from '../ai/generation-bundle.js';
 
 function pendingGate(): FeatureSpecMeta['gates'] {
   return {
     requirements: { status: 'pending' },
+    gap_analysis: { status: 'pending' },
     design: { status: 'pending' },
     tasks: { status: 'pending' },
   };
@@ -37,9 +42,22 @@ function approvedGate(by = 'developer'): FeatureSpecMeta['gates'] {
   const at = nowIso();
   return {
     requirements: { status: 'approved', approvedAt: at, approvedBy: by },
+    gap_analysis: { status: 'approved', approvedAt: at, approvedBy: by },
     design: { status: 'approved', approvedAt: at, approvedBy: by },
     tasks: { status: 'approved', approvedAt: at, approvedBy: by },
   };
+}
+
+function ensureMetaGates(meta: FeatureSpecMeta): FeatureSpecMeta {
+  if (!meta.gates.gap_analysis) {
+    meta.gates.gap_analysis = { status: 'pending' };
+  }
+  return meta;
+}
+
+async function loadSpecMeta(specPaths: { meta: string }): Promise<FeatureSpecMeta> {
+  const meta = ensureMetaGates(await loadMeta(specPaths.meta));
+  return meta;
 }
 
 export async function createSpec(
@@ -49,6 +67,7 @@ export async function createSpec(
   const config = await loadConfig(projectRoot);
   const paths = defaultProjectPaths(projectRoot);
   const slug = slugify(options.title);
+  const runtime = options.runtime ?? 'cli';
 
   if (!slug) {
     throw new SpecDriveError('Could not derive spec slug from title', 'INVALID_TITLE');
@@ -83,33 +102,27 @@ export async function createSpec(
     updated: todayIso(),
   };
 
+  let generationBundle: CreateSpecResult['generationBundle'];
+
   if (type === 'bugfix') {
-    const steering = await loadSteeringContent(projectRoot);
-    const provider = createGenerationProvider(config);
-    const bugfixContent = await provider.generate({
-      kind: 'bugfix',
-      title: options.title,
-      description,
-      stack: config.stack,
-      slug,
-      steering,
-    });
+    if (runtime === 'mcp') {
+      await saveMeta(specPaths.meta, meta);
+      generationBundle = await getGenerationBundle(projectRoot, meta, 'bugfix');
+      return { slug, id, paths: specPaths, generated, generationBundle };
+    }
+
+    const bugfixContent = await generateDocumentCli(projectRoot, meta, 'bugfix');
     await writeText(specPaths.bugfix, bugfixContent);
     meta.phase = 'implementing';
     meta.gates.requirements = { status: 'approved', approvedAt: nowIso(), approvedBy: 'developer' };
     generated.push('bugfix');
     await saveMeta(specPaths.meta, meta);
+  } else if (runtime === 'mcp') {
+    await saveMeta(specPaths.meta, meta);
+    generationBundle = await getGenerationBundle(projectRoot, meta, 'requirements');
+    return { slug, id, paths: specPaths, generated, generationBundle };
   } else {
-    const steering = await loadSteeringContent(projectRoot);
-    const provider = createGenerationProvider(config);
-    const reqContent = await provider.generate({
-      kind: 'requirements',
-      title: options.title,
-      description,
-      stack: config.stack,
-      slug,
-      steering,
-    });
+    const reqContent = await generateDocumentCli(projectRoot, meta, 'requirements');
     const reqs = parseRequirements(reqContent);
     meta.requirements = reqs.length
       ? reqs.map((r) => r.id)
@@ -119,18 +132,19 @@ export async function createSpec(
     await saveMeta(specPaths.meta, meta);
 
     if (options.quick) {
+      await generateGapAnalysis(projectRoot, slug, { regenerate: true, skipGateCheck: true });
       await generateDesign(projectRoot, slug, { regenerate: true, skipGateCheck: true });
       await generateTasks(projectRoot, slug, { regenerate: true, skipGateCheck: true });
-      generated.push('design', 'tasks');
-      const updated = await loadMeta(specPaths.meta);
+      generated.push('gap-analysis', 'design', 'tasks');
+      const updated = await loadSpecMeta(specPaths);
       updated.phase = 'implementing';
       updated.gates = approvedGate();
       await saveMeta(specPaths.meta, updated);
     }
   }
 
-  const finalMeta = await loadMeta(specPaths.meta);
-  return { slug, id: finalMeta.id, paths: specPaths, generated };
+  const finalMeta = await loadSpecMeta(specPaths);
+  return { slug, id: finalMeta.id, paths: specPaths, generated, generationBundle };
 }
 
 export async function approveGate(
@@ -141,14 +155,21 @@ export async function approveGate(
 ): Promise<FeatureSpecMeta> {
   const paths = defaultProjectPaths(projectRoot);
   const specPaths = featureSpecPaths(paths.specs, slug);
-  const meta = await loadMeta(specPaths.meta);
+  const meta = await loadSpecMeta(specPaths);
 
-  const gates: GateName[] = gate === 'all' ? ['requirements', 'design', 'tasks'] : [gate];
+  const gates: GateName[] =
+    gate === 'all' ? ['requirements', 'gap_analysis', 'design', 'tasks'] : [gate];
 
   for (const g of gates) {
-    if (g === 'design' && !isGateApproved(meta, 'requirements')) {
+    if (g === 'gap_analysis' && !isGateApproved(meta, 'requirements')) {
       throw new SpecDriveError(
-        'Requirements must be approved before design',
+        'Requirements must be approved before gap analysis',
+        'GATE_NOT_READY',
+      );
+    }
+    if (g === 'design' && !isGateApproved(meta, 'gap_analysis')) {
+      throw new SpecDriveError(
+        'Gap analysis must be approved before design',
         'GATE_NOT_READY',
       );
     }
@@ -159,6 +180,12 @@ export async function approveGate(
     if (g === 'requirements' && !(await fileExists(specPaths.requirements))) {
       throw new SpecDriveError('requirements.md not found', 'DOC_MISSING');
     }
+    if (g === 'gap_analysis' && !(await fileExists(specPaths.gapAnalysis))) {
+      throw new SpecDriveError(
+        'gap-analysis.md not found — run spec gap-analysis first',
+        'DOC_MISSING',
+      );
+    }
     if (g === 'design' && !(await fileExists(specPaths.design))) {
       throw new SpecDriveError('design.md not found — run spec design first', 'DOC_MISSING');
     }
@@ -167,13 +194,44 @@ export async function approveGate(
     }
 
     meta.gates[g] = { status: 'approved', approvedAt: nowIso(), approvedBy };
-    if (g === 'requirements') meta.phase = 'design';
+    if (g === 'requirements') meta.phase = 'gap_analysis';
+    if (g === 'gap_analysis') meta.phase = 'design';
     if (g === 'design') meta.phase = 'tasks';
     if (g === 'tasks') meta.phase = 'implementing';
   }
 
   await saveMeta(specPaths.meta, meta);
   return meta;
+}
+
+export async function generateGapAnalysis(
+  projectRoot: string,
+  slug: string,
+  opts: { regenerate?: boolean; skipGateCheck?: boolean } = {},
+): Promise<string> {
+  const paths = defaultProjectPaths(projectRoot);
+  const specPaths = featureSpecPaths(paths.specs, slug);
+  const meta = await loadSpecMeta(specPaths);
+
+  if (!opts.skipGateCheck && !isGateApproved(meta, 'requirements')) {
+    throw new SpecDriveError(
+      'Requirements gate not approved. Run: spec approve requirements --spec ' + slug,
+      'GATE_NOT_APPROVED',
+    );
+  }
+
+  if (!opts.regenerate && (await fileExists(specPaths.gapAnalysis))) {
+    throw new SpecDriveError(
+      'gap-analysis.md already exists. Use --regenerate to overwrite.',
+      'DOC_EXISTS',
+    );
+  }
+
+  const content = await generateDocumentCli(projectRoot, meta, 'gap-analysis');
+  await writeText(specPaths.gapAnalysis, content);
+  meta.phase = 'gap_analysis';
+  await saveMeta(specPaths.meta, meta);
+  return content;
 }
 
 export async function generateDesign(
@@ -183,11 +241,11 @@ export async function generateDesign(
 ): Promise<string> {
   const paths = defaultProjectPaths(projectRoot);
   const specPaths = featureSpecPaths(paths.specs, slug);
-  const meta = await loadMeta(specPaths.meta);
+  const meta = await loadSpecMeta(specPaths);
 
-  if (!opts.skipGateCheck && !isGateApproved(meta, 'requirements')) {
+  if (!opts.skipGateCheck && !isGateApproved(meta, 'gap_analysis')) {
     throw new SpecDriveError(
-      'Requirements gate not approved. Run: spec approve requirements --spec ' + slug,
+      'Gap analysis gate not approved. Run: spec approve gap-analysis --spec ' + slug,
       'GATE_NOT_APPROVED',
     );
   }
@@ -199,19 +257,7 @@ export async function generateDesign(
     );
   }
 
-  const config = await loadConfig(projectRoot);
-  const reqContent = await readText(specPaths.requirements);
-  const steering = await loadSteeringContent(projectRoot);
-  const provider = createGenerationProvider(config);
-  const content = await provider.generate({
-    kind: 'design',
-    title: meta.title,
-    description: meta.description ?? meta.title,
-    stack: meta.stack,
-    slug,
-    requirementsContent: reqContent,
-    steering,
-  });
+  const content = await generateDocumentCli(projectRoot, meta, 'design');
   await writeText(specPaths.design, content);
   meta.phase = 'design';
   await saveMeta(specPaths.meta, meta);
@@ -225,7 +271,7 @@ export async function generateTasks(
 ): Promise<string> {
   const paths = defaultProjectPaths(projectRoot);
   const specPaths = featureSpecPaths(paths.specs, slug);
-  const meta = await loadMeta(specPaths.meta);
+  const meta = await loadSpecMeta(specPaths);
 
   if (!opts.skipGateCheck && !isGateApproved(meta, 'design')) {
     throw new SpecDriveError(
@@ -241,29 +287,25 @@ export async function generateTasks(
     );
   }
 
-  const config = await loadConfig(projectRoot);
-  const reqContent = await readText(specPaths.requirements);
-  const designContent = (await fileExists(specPaths.design))
-    ? await readText(specPaths.design)
-    : '';
-  const steering = await loadSteeringContent(projectRoot);
-  const provider = createGenerationProvider(config);
-  const content = await provider.generate({
-    kind: 'tasks',
-    title: meta.title,
-    description: meta.description ?? meta.title,
-    stack: meta.stack,
-    slug,
-    requirementsContent: reqContent,
-    designContent,
-    steering,
-  });
+  const content = await generateDocumentCli(projectRoot, meta, 'tasks');
   await writeText(specPaths.tasks, content);
 
   meta.tasks = [...content.matchAll(/TASK-\d{3}/g)].map((m) => m[0]);
   meta.phase = 'tasks';
   await saveMeta(specPaths.meta, meta);
   return content;
+}
+
+export async function getMcpGenerationBundle(
+  projectRoot: string,
+  slug: string,
+  document: SpecDocument,
+): Promise<string> {
+  const paths = defaultProjectPaths(projectRoot);
+  const specPaths = featureSpecPaths(paths.specs, slug);
+  const meta = await loadSpecMeta(specPaths);
+  const bundle = await getGenerationBundle(projectRoot, meta, document);
+  return formatBundleForMcp(bundle);
 }
 
 export async function listSpecs(projectRoot: string) {
@@ -275,7 +317,7 @@ export async function listSpecs(projectRoot: string) {
   for (const slug of slugs) {
     const specPaths = featureSpecPaths(paths.specs, slug);
     if (!(await fileExists(specPaths.meta))) continue;
-    const meta = await loadMeta(specPaths.meta);
+    const meta = await loadSpecMeta(specPaths);
     summaries.push({
       id: meta.id,
       slug: meta.slug,
@@ -298,7 +340,7 @@ export async function getSpecStatus(projectRoot: string, slug: string) {
     throw new SpecDriveError(`Spec not found: ${slug}`, 'SPEC_NOT_FOUND');
   }
 
-  const meta = await loadMeta(specPaths.meta);
+  const meta = await loadSpecMeta(specPaths);
   let tasksDone = 0;
   let tasksTotal = 0;
 

@@ -287,6 +287,79 @@ export function tasksMd(
 ${body}`;
 }
 
+export function gapAnalysisMd(
+  title: string,
+  slug: string,
+  stack: FrontendStack,
+  requirements: ParsedRequirement[],
+): string {
+  const srcRoot = stackSourceRoot(stack);
+  const reqRows = requirements
+    .map(
+      (req) =>
+        `| ${req.id} | ${req.title} | Not scanned (run with codebase context) | Partial |`,
+    )
+    .join('\n');
+
+  return `# Gap Analysis: ${title}
+
+## Executive Summary
+
+Compare requirements against the current ${stackLabel(stack)} codebase before design and implementation.
+Run \`spec gap-analysis --spec ${slug}\` with a free LLM key (\`GEMINI_API_KEY\`) for a repo-specific analysis.
+
+## Existing Code Inventory
+
+| Area | Status | Notes |
+|------|--------|-------|
+| Feature module | Unknown | Expected under \`${srcRoot}/${slug}/\` |
+| Navigation/routes | Unknown | Check router configuration |
+| Shared components | Unknown | Scan \`${srcRoot}\` and shared UI folders |
+| State management | Unknown | Check existing providers/stores |
+
+## Requirements Coverage Matrix
+
+| Requirement | Description | Existing | Gap |
+|-------------|-------------|----------|-----|
+${reqRows}
+
+## Gaps to Bridge
+
+1. Scaffold feature folder at \`${srcRoot}/${slug}/\` if missing
+2. Add screen/page and navigation entry for \`/${slug}\`
+3. Implement UI states (loading, empty, error) per requirements
+4. Wire state management for user interactions
+
+## Files to Create
+
+- \`${srcRoot}/${slug}/\` — feature module root
+- Screen/page component for ${title}
+- Feature-specific widgets/components
+- Tests under \`test/\` or \`__tests__/\`
+
+## Files to Modify
+
+- App router / navigation configuration
+- Shared theme or design tokens (if new patterns needed)
+
+## Architecture Gaps
+
+- Confirm alignment with \`.specdrive/structure.md\`
+- Reuse existing patterns from similar features in the repo
+
+## Dependencies & Risks
+
+- **Risk:** Duplicating existing UI — mitigated by codebase scan
+- **Risk:** Missing accessibility patterns — follow \`.specdrive/coding-style.md\`
+
+## Recommended Implementation Order
+
+1. Inventory existing code (this document, repo-specific)
+2. Generate \`design.md\` addressing only identified gaps
+3. Break into \`tasks.md\` waves aligned with gap priority
+`;
+}
+
 export function bugfixMd(title: string, description: string): string {
   return `# Bugfix: ${title}
 

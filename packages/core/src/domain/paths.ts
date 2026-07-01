@@ -27,6 +27,7 @@ export function featureSpecPaths(specsRoot: string, slug: string): FeatureSpecPa
     dir,
     meta: `${dir}/meta.yaml`,
     requirements: `${dir}/requirements.md`,
+    gapAnalysis: `${dir}/gap-analysis.md`,
     design: `${dir}/design.md`,
     tasks: `${dir}/tasks.md`,
     bugfix: `${dir}/bugfix.md`,
@@ -38,7 +39,7 @@ export function isGateApproved(meta: FeatureSpecMeta, gate: GateName): boolean {
 }
 
 export function nextPendingGate(meta: FeatureSpecMeta): GateName | null {
-  const order: GateName[] = ['requirements', 'design', 'tasks'];
+  const order: GateName[] = ['requirements', 'gap_analysis', 'design', 'tasks'];
   for (const gate of order) {
     if (meta.gates[gate]?.status !== 'approved') {
       return gate;

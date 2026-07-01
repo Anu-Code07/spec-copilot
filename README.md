@@ -2,7 +2,7 @@
 
 **Frontend spec-driven development for Flutter, Next.js, and React Native.**
 
-SpecDrive is an open-source, AI-agnostic framework that generates Kiro-style specifications — `requirements.md` → `design.md` → `tasks.md` — focused on **UI/UX implementation**, not backend APIs.
+SpecDrive is an open-source, AI-agnostic framework that generates Kiro-style specifications — `requirements.md` → `gap-analysis.md` → `design.md` → `tasks.md` — focused on **UI/UX implementation**, not backend APIs.
 
 ## The Problem
 
@@ -11,9 +11,9 @@ Backend SDD already has OpenAPI, GitHub Spec Kit, and similar tools. **Frontend 
 ## How It Works (Kiro-Style, Frontend-First)
 
 ```
-Feature idea  →  requirements.md  →  design.md  →  tasks.md  →  Implement  →  Review
-                    (EARS)           (UI/UX)        (frontend tasks)
-                 approve ✓         approve ✓        approve ✓
+Feature idea  →  requirements.md  →  gap-analysis.md  →  design.md  →  tasks.md  →  Implement  →  Review
+                    (EARS)           (codebase gaps)      (UI/UX)        (frontend tasks)
+                 approve ✓         approve ✓            approve ✓        approve ✓
 ```
 
 **`design.md` drives UI/UX** — screens, components, navigation, state, accessibility, platform behavior.
@@ -41,6 +41,7 @@ Works with Cursor, Claude Code, Codex CLI, Gemini, Windsurf, Cline, Roo, Continu
 └── specs/
     └── product-review/
         ├── requirements.md # User stories + EARS acceptance criteria
+        ├── gap-analysis.md # Requirements vs existing codebase gaps
         ├── design.md       # UI/UX blueprint (screens, components, flows)
         └── tasks.md        # Sequenced implementation tasks
 ```
@@ -54,26 +55,39 @@ pnpm install && pnpm build
 
 # In your frontend project
 spec init --stack flutter
-spec create "Product Review Screen" --quick   # all 3 docs at once
+spec create "Product Review Screen" --quick   # all docs at once
 
 # Or gated Kiro-style workflow
 spec create "Product Review Screen"
 spec approve requirements --spec product-review-screen
+spec gap-analysis --spec product-review-screen
+spec approve gap-analysis --spec product-review-screen
 spec design --spec product-review-screen
 spec approve design --spec product-review-screen
 spec tasks --spec product-review-screen
 spec implement --spec product-review-screen --next
 ```
 
-## MCP + AI + Review
+## CLI vs MCP (AI keys)
+
+| Mode | Who generates docs | API keys |
+|------|-------------------|----------|
+| **CLI / npm** | SpecDrive calls a **free LLM** chain | `GEMINI_API_KEY`, `GROQ_API_KEY`, or local Ollama |
+| **MCP** (Cursor/Claude) | **Host AI** generates docs | Your Cursor/Claude API key — SpecDrive never calls LLM |
+
+CLI free LLM priority: Gemini → Groq → Ollama → template fallback.
 
 ```bash
-# MCP server (for Cursor / Claude)
-node packages/mcp/bin/mcp.js
+export GEMINI_API_KEY=your-key   # free tier at https://aistudio.google.com
+spec create "Checkout flow"
+spec gap-analysis --spec checkout-flow
+```
 
-# AI-powered generation (set OPENAI_API_KEY or ANTHROPIC_API_KEY)
-# Update .specdrive/config.yaml: generation.provider: llm
-spec create "Checkout flow" --quick
+## MCP + Review
+
+```bash
+# MCP server (for Cursor / Claude) — uses host AI, not SpecDrive LLM
+node packages/mcp/bin/mcp.js
 
 # Review against design.md
 spec review --spec product-review-screen --ci

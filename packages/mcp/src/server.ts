@@ -10,8 +10,10 @@ import {
   findProjectRoot,
   createSpec,
   approveGate,
-  generateDesign,
-  generateTasks,
+  getMcpGenerationBundle,
+  writeSpecDocument,
+  scanCodebaseContext,
+  formatCodebaseContext,
   getImplementContext,
   formatImplementContext,
   completeTask,
@@ -26,6 +28,9 @@ import {
   defaultProjectPaths,
   featureSpecPaths,
   SpecDriveError,
+  type GateName,
+  type SpecDocument,
+  formatGenerationBundle,
 } from '@specdrive/core';
 import { cwd } from 'node:process';
 
@@ -33,6 +38,20 @@ async function getRoot(): Promise<string> {
   const root = await findProjectRoot(cwd());
   if (!root) throw new SpecDriveError('Not a SpecDrive project', 'NOT_INITIALIZED');
   return root;
+}
+
+function normalizeGate(gate: string): GateName | 'all' {
+  const map: Record<string, GateName | 'all'> = {
+    requirements: 'requirements',
+    'gap-analysis': 'gap_analysis',
+    gap_analysis: 'gap_analysis',
+    design: 'design',
+    tasks: 'tasks',
+    all: 'all',
+  };
+  const normalized = map[gate];
+  if (!normalized) throw new SpecDriveError(`Invalid gate: ${gate}`, 'INVALID_GATE');
+  return normalized;
 }
 
 export async function createMcpServer(): Promise<Server> {
@@ -45,13 +64,13 @@ export async function createMcpServer(): Promise<Server> {
     tools: [
       {
         name: 'create_spec',
-        description: 'Create a new feature spec with requirements.md',
+        description:
+          'Scaffold a new spec (meta.yaml only). Returns a generation bundle — use YOUR host API (Cursor/Claude) to generate requirements.md, then call write_spec_document.',
         inputSchema: {
           type: 'object',
           properties: {
             title: { type: 'string' },
             description: { type: 'string' },
-            quick: { type: 'boolean' },
             type: { type: 'string', enum: ['feature', 'bugfix'] },
           },
           required: ['title'],
@@ -59,12 +78,15 @@ export async function createMcpServer(): Promise<Server> {
       },
       {
         name: 'read_spec',
-        description: 'Read spec documents (requirements, design, tasks)',
+        description: 'Read spec documents (requirements, gap-analysis, design, tasks)',
         inputSchema: {
           type: 'object',
           properties: {
             slug: { type: 'string' },
-            document: { type: 'string', enum: ['requirements', 'design', 'tasks', 'meta', 'all'] },
+            document: {
+              type: 'string',
+              enum: ['requirements', 'gap-analysis', 'design', 'tasks', 'meta', 'all'],
+            },
           },
           required: ['slug'],
         },
@@ -76,33 +98,76 @@ export async function createMcpServer(): Promise<Server> {
           type: 'object',
           properties: {
             slug: { type: 'string' },
-            gate: { type: 'string', enum: ['requirements', 'design', 'tasks', 'all'] },
+            gate: {
+              type: 'string',
+              enum: ['requirements', 'gap-analysis', 'gap_analysis', 'design', 'tasks', 'all'],
+            },
           },
           required: ['slug', 'gate'],
         },
       },
       {
-        name: 'generate_design',
-        description: 'Generate design.md from approved requirements',
+        name: 'generate_gap_analysis',
+        description:
+          'Return gap-analysis generation bundle. Host AI generates gap-analysis.md comparing requirements vs codebase.',
         inputSchema: {
           type: 'object',
           properties: {
             slug: { type: 'string' },
-            regenerate: { type: 'boolean' },
+          },
+          required: ['slug'],
+        },
+      },
+      {
+        name: 'generate_design',
+        description:
+          'Return design generation bundle. Host AI generates design.md from requirements + gap-analysis.',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            slug: { type: 'string' },
           },
           required: ['slug'],
         },
       },
       {
         name: 'generate_tasks',
-        description: 'Generate tasks.md from approved design',
+        description:
+          'Return tasks generation bundle. Host AI generates tasks.md from design + gap-analysis.',
         inputSchema: {
           type: 'object',
           properties: {
             slug: { type: 'string' },
-            regenerate: { type: 'boolean' },
           },
           required: ['slug'],
+        },
+      },
+      {
+        name: 'write_spec_document',
+        description:
+          'Save host AI-generated markdown to the spec folder (requirements, gap-analysis, design, tasks, bugfix)',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            slug: { type: 'string' },
+            document: {
+              type: 'string',
+              enum: ['requirements', 'gap-analysis', 'design', 'tasks', 'bugfix'],
+            },
+            content: { type: 'string' },
+          },
+          required: ['slug', 'document', 'content'],
+        },
+      },
+      {
+        name: 'scan_codebase',
+        description: 'Scan the repo for relevant source files and return codebase context',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            slug: { type: 'string' },
+            title: { type: 'string' },
+          },
         },
       },
       {
@@ -184,7 +249,7 @@ export async function createMcpServer(): Promise<Server> {
     const paths = defaultProjectPaths(root);
     const specPaths = featureSpecPaths(paths.specs, slug);
     const parts: string[] = [];
-    for (const doc of ['requirements', 'design', 'tasks'] as const) {
+    for (const doc of ['requirements', 'gapAnalysis', 'design', 'tasks'] as const) {
       const p = specPaths[doc];
       if (await fileExists(p)) {
         parts.push(await readText(p));
@@ -206,45 +271,105 @@ export async function createMcpServer(): Promise<Server> {
           const result = await createSpec(root, {
             title: a.title as string,
             description: a.description as string | undefined,
-            quick: a.quick as boolean | undefined,
             type: (a.type as 'feature' | 'bugfix') ?? 'feature',
+            runtime: 'mcp',
           });
-          return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
+          const bundleText = result.generationBundle
+            ? formatGenerationBundle(result.generationBundle)
+            : null;
+          return {
+            content: [{
+              type: 'text',
+              text: JSON.stringify({
+                slug: result.slug,
+                id: result.id,
+                paths: result.paths,
+                generated: result.generated,
+                bundle: bundleText ? JSON.parse(bundleText) : null,
+              }, null, 2),
+            }],
+          };
         }
         case 'read_spec': {
           const slug = a.slug as string;
           const doc = (a.document as string) ?? 'all';
           const paths = defaultProjectPaths(root);
           const specPaths = featureSpecPaths(paths.specs, slug);
-          const readDoc = async (key: 'requirements' | 'design' | 'tasks' | 'meta') => {
+          const readDoc = async (key: 'requirements' | 'gapAnalysis' | 'design' | 'tasks' | 'meta') => {
             const p = specPaths[key];
             return (await fileExists(p)) ? await readText(p) : '';
           };
           if (doc === 'all') {
             const parts = await Promise.all(
-              (['requirements', 'design', 'tasks'] as const).map(async (d) =>
-                `## ${d}\n${await readDoc(d)}`,
+              ([
+                ['requirements', 'requirements'],
+                ['gap-analysis', 'gapAnalysis'],
+                ['design', 'design'],
+                ['tasks', 'tasks'],
+              ] as const).map(async ([label, key]) =>
+                `## ${label}\n${await readDoc(key)}`,
               ),
             );
             return { content: [{ type: 'text', text: parts.join('\n\n') }] };
           }
-          return { content: [{ type: 'text', text: await readDoc(doc as 'requirements') }] };
+          const keyMap: Record<string, 'requirements' | 'gapAnalysis' | 'design' | 'tasks' | 'meta'> = {
+            requirements: 'requirements',
+            'gap-analysis': 'gapAnalysis',
+            design: 'design',
+            tasks: 'tasks',
+            meta: 'meta',
+          };
+          const key = keyMap[doc] ?? 'requirements';
+          return { content: [{ type: 'text', text: await readDoc(key) }] };
         }
         case 'update_spec': {
-          const meta = await approveGate(root, a.slug as string, a.gate as 'requirements' | 'design' | 'tasks' | 'all');
+          const meta = await approveGate(
+            root,
+            a.slug as string,
+            normalizeGate(a.gate as string),
+          );
           return { content: [{ type: 'text', text: JSON.stringify(meta, null, 2) }] };
         }
+        case 'generate_gap_analysis': {
+          const text = await getMcpGenerationBundle(root, a.slug as string, 'gap-analysis');
+          return { content: [{ type: 'text', text }] };
+        }
         case 'generate_design': {
-          const text = await generateDesign(root, a.slug as string, {
-            regenerate: a.regenerate as boolean | undefined,
-          });
+          const text = await getMcpGenerationBundle(root, a.slug as string, 'design');
           return { content: [{ type: 'text', text }] };
         }
         case 'generate_tasks': {
-          const text = await generateTasks(root, a.slug as string, {
-            regenerate: a.regenerate as boolean | undefined,
-          });
+          const text = await getMcpGenerationBundle(root, a.slug as string, 'tasks');
           return { content: [{ type: 'text', text }] };
+        }
+        case 'write_spec_document': {
+          const filePath = await writeSpecDocument(
+            root,
+            a.slug as string,
+            a.document as SpecDocument,
+            a.content as string,
+          );
+          return { content: [{ type: 'text', text: `Saved ${a.document} to ${filePath}` }] };
+        }
+        case 'scan_codebase': {
+          const slug = await resolveSpecSlug(root, a.slug as string | undefined);
+          const status = await getSpecStatus(root, slug);
+          const reqContent = (await fileExists(status.specPaths.requirements))
+            ? await readText(status.specPaths.requirements)
+            : undefined;
+          const ctx = await scanCodebaseContext(
+            root,
+            status.meta.stack,
+            slug,
+            (a.title as string) ?? status.meta.title,
+            reqContent,
+          );
+          return {
+            content: [{
+              type: 'text',
+              text: formatCodebaseContext(ctx),
+            }],
+          };
         }
         case 'get_next_task': {
           const slug = await resolveSpecSlug(root, a.slug as string | undefined);

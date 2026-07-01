@@ -31,6 +31,20 @@ Generate requirements.md with:
 - Non-functional requirements (accessibility, performance)
 - Out of scope`;
 
+    case 'gap-analysis':
+      return `${base}
+
+Approved requirements:
+${input.requirementsContent ?? ''}
+
+Codebase context:
+${input.codebaseContextFormatted ?? ''}
+
+Generate gap-analysis.md comparing requirements against the existing codebase.
+Include: Executive Summary, Existing Code Inventory, Requirements Coverage Matrix,
+Gaps to Bridge, Files to Create, Files to Modify, Architecture Gaps, Dependencies & Risks,
+Recommended Implementation Order. Be specific about file paths and components.`;
+
     case 'design':
       return `${base}
 

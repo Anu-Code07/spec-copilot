@@ -2,6 +2,7 @@ import type { GenerationInput, GenerationProvider } from './types.js';
 import {
   requirementsMd,
   defaultRequirements,
+  gapAnalysisMd,
   designMd,
   tasksMd,
   bugfixMd,
@@ -16,6 +17,12 @@ export class TemplateGenerationProvider implements GenerationProvider {
       case 'requirements': {
         const reqs = defaultRequirements(input.title, input.description);
         return requirementsMd(input.title, input.description, reqs);
+      }
+      case 'gap-analysis': {
+        const reqs = input.requirementsContent
+          ? parseRequirements(input.requirementsContent)
+          : defaultRequirements(input.title, input.description);
+        return gapAnalysisMd(input.title, input.slug, input.stack, reqs);
       }
       case 'design': {
         const reqs = input.requirementsContent

@@ -6,7 +6,7 @@ import { handleError, requireProjectRoot } from '../context.js';
 export function registerDesign(program: Command): void {
   program
     .command('design')
-    .description('Generate design.md from approved requirements')
+    .description('Generate design.md from approved gap-analysis')
     .requiredOption('--spec <slug>', 'Spec slug')
     .option('--regenerate', 'Overwrite existing design.md')
     .action(async (opts: { spec: string; regenerate?: boolean }) => {

@@ -6,6 +6,7 @@ export type SpecType = 'feature' | 'bugfix';
 
 export type SpecPhase =
   | 'requirements'
+  | 'gap_analysis'
   | 'design'
   | 'tasks'
   | 'implementing'
@@ -14,7 +15,7 @@ export type SpecPhase =
 
 export type GateStatus = 'pending' | 'approved' | 'rejected';
 
-export type GateName = 'requirements' | 'design' | 'tasks';
+export type GateName = 'requirements' | 'gap_analysis' | 'design' | 'tasks';
 
 export interface PhaseGate {
   status: GateStatus;
@@ -46,7 +47,8 @@ export interface ProjectConfig {
     requireApproval: boolean;
   };
   generation: {
-    provider: 'template' | 'llm' | 'mcp';
+    /** CLI/npm: template engine (offline). MCP: ai_assisted via host Cursor/Claude API */
+    provider: 'template';
     askClarifyingQuestions: boolean;
   };
   review: {
@@ -85,6 +87,7 @@ export interface FeatureSpecPaths {
   dir: string;
   meta: string;
   requirements: string;
+  gapAnalysis: string;
   design: string;
   tasks: string;
   bugfix: string;
@@ -129,11 +132,15 @@ export interface CreateSpecOptions {
   type?: SpecType;
   quick?: boolean;
   designFirst?: boolean;
+  /** cli = template engine; mcp = scaffold + AI bundle for host */
+  runtime?: 'cli' | 'mcp';
 }
 
 export interface CreateSpecResult {
   slug: string;
   id: string;
   paths: FeatureSpecPaths;
-  generated: ('requirements' | 'design' | 'tasks' | 'bugfix')[];
+  generated: ('requirements' | 'gap-analysis' | 'design' | 'tasks' | 'bugfix')[];
+  /** Present when runtime=mcp — host AI generates docs using Cursor/Claude API */
+  generationBundle?: import('../ai/generation-bundle.js').GenerationBundle;
 }

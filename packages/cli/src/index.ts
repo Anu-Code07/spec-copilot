@@ -10,6 +10,7 @@ import { registerStatus } from './commands/status.js';
 import { registerList } from './commands/list.js';
 import { registerDoctor } from './commands/doctor.js';
 import { registerReview } from './commands/review.js';
+import { registerGapAnalysis } from './commands/gap-analysis.js';
 
 export function run(argv: string[]): void {
   const program = new Command();
@@ -23,6 +24,7 @@ export function run(argv: string[]): void {
   registerCreate(program);
   registerApprove(program);
   registerDesign(program);
+  registerGapAnalysis(program);
   registerTasks(program);
   registerImplement(program);
   registerStatus(program);

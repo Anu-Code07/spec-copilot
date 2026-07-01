@@ -1,21 +1,24 @@
 import type { GenerationProvider } from './types.js';
-import { resolveLlmConfig } from './types.js';
 import { TemplateGenerationProvider } from './template-provider.js';
-import { LlmGenerationProvider } from './llm-provider.js';
-import type { ProjectConfig } from '../domain/types.js';
+import { FreeLlmGenerationProvider } from './free-llm-provider.js';
+import type { RuntimeMode } from './generation-bundle.js';
 
-export function createGenerationProvider(config: ProjectConfig): GenerationProvider {
-  const preferLlm = config.generation.provider === 'llm' || config.generation.provider === 'mcp';
-  const llmConfig = resolveLlmConfig();
-
-  if (preferLlm && llmConfig) {
-    return new LlmGenerationProvider(llmConfig);
+/** CLI/npm → free LLM (Gemini/Groq/Ollama) + template fallback. MCP → never calls LLM here. */
+export function createGenerationProvider(_runtime: RuntimeMode = 'cli'): GenerationProvider {
+  if (_runtime === 'mcp') {
+    return new TemplateGenerationProvider();
   }
-
-  return new TemplateGenerationProvider();
+  return new FreeLlmGenerationProvider();
 }
 
 export { TemplateGenerationProvider } from './template-provider.js';
-export { LlmGenerationProvider } from './llm-provider.js';
-export type { GenerationInput, GenerationProvider, LlmConfig } from './types.js';
+export { FreeLlmGenerationProvider, resolveFreeLlmConfig } from './free-llm-provider.js';
+export type { GenerationInput, GenerationProvider } from './types.js';
 export { resolveLlmConfig } from './types.js';
+export {
+  buildGenerationBundle,
+  formatGenerationBundle,
+  type GenerationBundle,
+  type SpecDocument,
+  type RuntimeMode,
+} from './generation-bundle.js';
