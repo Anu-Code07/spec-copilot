@@ -4,6 +4,13 @@ All notable changes to SpecDrive are documented here.
 
 Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.1.1] - 2026-07-04
+
+### Fixed
+
+- Add `README.md` and `bin/` to `@specdrive/cli` npm package (npm page was empty)
+- Include `bin/` in `@specdrive/mcp` published tarball
+
 ## [0.1.0] - 2026-07-01
 
 ### Added
@@ -32,4 +39,5 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 See [docs/KNOWN-LIMITATIONS.md](docs/KNOWN-LIMITATIONS.md).
 
+[0.1.1]: https://github.com/Anu-Code07/spec-copilot/releases/tag/v0.1.1
 [0.1.0]: https://github.com/Anu-Code07/spec-copilot/releases/tag/v0.1.0

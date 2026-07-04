@@ -1,6 +1,6 @@
 {
   "name": "@specdrive/cli",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "SpecDrive CLI — frontend spec-driven development",
   "license": "MIT",
   "type": "module",
@@ -32,6 +32,8 @@
     "directory": "packages/cli"
   },
   "files": [
-    "dist"
+    "dist",
+    "bin",
+    "README.md"
   ]
 }
