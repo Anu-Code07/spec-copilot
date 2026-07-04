@@ -30,8 +30,8 @@ async function checkPackageVersions() {
   ];
   for (const pkgPath of packages) {
     const pkg = JSON.parse(await readFile(join(root, pkgPath), 'utf-8'));
-    if (pkg.version !== '0.1.0') {
-      warnings.push(`${pkgPath}: version is ${pkg.version}, expected 0.1.0`);
+    if (pkg.version !== '0.1.1') {
+      warnings.push(`${pkgPath}: version is ${pkg.version}, expected 0.1.1`);
     }
   }
 }

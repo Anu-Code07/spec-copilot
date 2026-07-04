@@ -1,6 +1,6 @@
 {
   "name": "@specdrive/review-engine",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "SpecDrive review engine — validate code against design.md",
   "license": "MIT",
   "type": "module",
