@@ -33,10 +33,20 @@ jobs:
       - name: Build
         run: pnpm build
 
+      - name: Verify npm token
+        run: |
+          if [ -z "$NODE_AUTH_TOKEN" ]; then
+            echo "NPM_TOKEN secret is not set in repository secrets"
+            exit 1
+          fi
+          npm whoami
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
       - name: Prepare versions for publish
         run: node scripts/prepare-publish.mjs ${{ github.event.inputs.version || github.event.release.tag_name || '0.1.0' }}
 
       - name: Publish packages
-        run: pnpm publish -r --access public --no-git-checks
+        run: pnpm publish -r --filter "@specdrive/*" --access public --no-git-checks
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

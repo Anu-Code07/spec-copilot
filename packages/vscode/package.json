@@ -3,6 +3,7 @@
   "displayName": "SpecDrive",
   "description": "Frontend spec-driven development — spec explorer, task panel, design.md review",
   "version": "0.0.0",
+  "private": true,
   "publisher": "specdrive",
   "license": "MIT",
   "engines": {
