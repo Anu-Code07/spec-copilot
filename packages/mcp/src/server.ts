@@ -44,7 +44,20 @@ import { cwd } from 'node:process';
 
 async function getRoot(): Promise<string> {
   const root = await findProjectRoot(cwd());
-  if (!root) throw new SpecDriveError('Not a SpecDrive project', 'NOT_INITIALIZED');
+  if (!root) {
+    throw new SpecDriveError(
+      [
+        'Not a SpecDrive project — .specdrive/config.yaml missing in workspace root.',
+        '',
+        'Fix (run in your app folder, then reload MCP in Cursor):',
+        '  npm install -g @specdrive/cli@0.1.2',
+        '  spec setup cursor --stack flutter',
+        '',
+        `Current MCP cwd: ${cwd()}`,
+      ].join('\n'),
+      'NOT_INITIALIZED',
+    );
+  }
   return root;
 }
 

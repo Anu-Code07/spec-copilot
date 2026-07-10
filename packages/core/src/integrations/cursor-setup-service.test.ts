@@ -24,6 +24,7 @@ describe('cursor-setup-service', () => {
     expect(result.mcpConfigCreated).toBe(true);
     expect(result.ruleCreated).toBe(true);
     expect(result.skillCreated).toBe(true);
+    expect(result.cheatsheetCreated).toBe(true);
 
     const mcp = JSON.parse(await readFile(result.mcpConfigPath, 'utf-8')) as {
       mcpServers: { specdrive: { command: string; args: string[] } };
@@ -34,6 +35,7 @@ describe('cursor-setup-service', () => {
     const status = await getCursorSetupStatus(projectRoot);
     expect(status.mcpConfigured).toBe(true);
     expect(status.rulePresent).toBe(true);
+    expect(status.cheatsheetPresent).toBe(true);
     expect(status.skillPresent).toBe(true);
   });
 

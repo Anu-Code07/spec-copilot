@@ -2,6 +2,7 @@ import { join } from 'node:path';
 import { fileExists, readText, writeText } from '../infrastructure/files.js';
 import {
   cursorMcpServerConfig,
+  cursorCheatsheetRule,
   cursorSddSkill,
   cursorWorkflowRule,
 } from '../templates/cursor.js';
@@ -13,6 +14,8 @@ export interface CursorSetupResult {
   mcpConfigUpdated: boolean;
   rulePath: string;
   ruleCreated: boolean;
+  cheatsheetPath: string;
+  cheatsheetCreated: boolean;
   skillPath: string;
   skillCreated: boolean;
 }
@@ -32,6 +35,7 @@ function cursorPaths(projectRoot: string) {
     cursorDir,
     mcpConfig: join(cursorDir, 'mcp.json'),
     rule: join(cursorDir, 'rules', 'specdrive-workflow.mdc'),
+    cheatsheet: join(cursorDir, 'rules', 'specdrive-cheatsheet.mdc'),
     skill: join(cursorDir, 'skills', 'specdrive-sdd', 'SKILL.md'),
   };
 }
@@ -81,6 +85,11 @@ export async function setupCursorIntegration(
     await writeText(paths.rule, cursorWorkflowRule());
   }
 
+  const cheatsheetExisted = await fileExists(paths.cheatsheet);
+  if (!cheatsheetExisted || options.force) {
+    await writeText(paths.cheatsheet, cursorCheatsheetRule());
+  }
+
   const skillExisted = await fileExists(paths.skill);
   if (!skillExisted || options.force) {
     await writeText(paths.skill, cursorSddSkill());
@@ -93,6 +102,8 @@ export async function setupCursorIntegration(
     mcpConfigUpdated: needsMcpUpdate && !mcpConfigCreated,
     rulePath: paths.rule,
     ruleCreated: !ruleExisted,
+    cheatsheetPath: paths.cheatsheet,
+    cheatsheetCreated: !cheatsheetExisted,
     skillPath: paths.skill,
     skillCreated: !skillExisted,
   };
@@ -101,6 +112,7 @@ export async function setupCursorIntegration(
 export async function getCursorSetupStatus(projectRoot: string): Promise<{
   mcpConfigured: boolean;
   rulePresent: boolean;
+  cheatsheetPresent: boolean;
   skillPresent: boolean;
   mcpConfigPath: string;
 }> {
@@ -111,6 +123,7 @@ export async function getCursorSetupStatus(projectRoot: string): Promise<{
   return {
     mcpConfigured: configsEqual(config.mcpServers?.specdrive, desiredServer),
     rulePresent: await fileExists(paths.rule),
+    cheatsheetPresent: await fileExists(paths.cheatsheet),
     skillPresent: await fileExists(paths.skill),
     mcpConfigPath: paths.mcpConfig,
   };

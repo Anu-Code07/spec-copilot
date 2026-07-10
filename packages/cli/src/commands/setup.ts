@@ -65,6 +65,12 @@ export function registerSetup(program: Command): void {
           console.log(chalk.dim('• Cursor rule already present'));
         }
 
+        if (result.cheatsheetCreated) {
+          console.log(chalk.green('✓ Added SpecDrive cheat sheet (.cursor/rules/specdrive-cheatsheet.mdc)'));
+        } else {
+          console.log(chalk.dim('• SpecDrive cheat sheet already present'));
+        }
+
         if (result.skillCreated) {
           console.log(chalk.green('✓ Added Cursor skill (.cursor/skills/specdrive-sdd/SKILL.md)'));
         } else {
