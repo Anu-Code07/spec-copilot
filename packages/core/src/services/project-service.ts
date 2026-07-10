@@ -76,19 +76,28 @@ export async function doctorProject(projectRoot: string): Promise<DoctorIssue[]>
     await import('../infrastructure/shell-profile-env.js');
   await ensureProfileEnvHydrated();
 
+  const { getCursorSetupStatus } = await import('../integrations/cursor-setup-service.js');
+  const cursor = await getCursorSetupStatus(projectRoot);
+  const mcpReady = cursor.mcpConfigured;
+
   if (process.env.SPECDRIVE_LLM_OFFLINE === '1') {
     issues.push({ level: 'info', message: 'LLM: offline templates (SPECDRIVE_LLM_OFFLINE=1)' });
   } else if (hasAnyLlmApiKey()) {
     const backend = process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY
       ? 'Gemini'
       : 'Groq';
-    issues.push({ level: 'info', message: `LLM: ${backend} API key configured` });
+    issues.push({ level: 'info', message: `LLM: ${backend} API key configured (CLI mode)` });
   } else if (process.env.SPECDRIVE_USE_OLLAMA === '1') {
     issues.push({ level: 'info', message: 'LLM: Ollama mode (SPECDRIVE_USE_OLLAMA=1)' });
+  } else if (mcpReady) {
+    issues.push({
+      level: 'info',
+      message: 'LLM: not needed — MCP mode uses Cursor AI (no SpecDrive API key required)',
+    });
   } else {
     issues.push({
       level: 'warning',
-      message: `LLM: no API key — add GEMINI_API_KEY to ${getPrimaryShellProfilePath()} or run with --api-key`,
+      message: `LLM: no API key — only required for CLI mode (add GEMINI_API_KEY to ${getPrimaryShellProfilePath()}, or run spec setup cursor for MCP)`,
     });
   }
 
@@ -96,12 +105,10 @@ export async function doctorProject(projectRoot: string): Promise<DoctorIssue[]>
     issues.unshift({ level: 'info', message: 'SpecDrive project is healthy' });
   }
 
-  const { getCursorSetupStatus } = await import('../integrations/cursor-setup-service.js');
-  const cursor = await getCursorSetupStatus(projectRoot);
-  if (!cursor.mcpConfigured) {
+  if (!mcpReady) {
     issues.push({
       level: 'warning',
-      message: 'Cursor MCP not configured — run `spec setup cursor`',
+      message: 'Cursor MCP not configured — run `spec setup cursor` in this project, then reload MCP in Cursor',
     });
   } else {
     issues.push({ level: 'info', message: 'Cursor MCP configured (.cursor/mcp.json)' });
