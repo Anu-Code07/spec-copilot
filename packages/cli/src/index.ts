@@ -13,6 +13,8 @@ import { registerReview } from './commands/review.js';
 import { registerGapAnalysis } from './commands/gap-analysis.js';
 import { registerFigma } from './commands/figma.js';
 
+import { registerSetup } from './commands/setup.js';
+
 export function run(argv: string[]): void {
   const program = new Command();
 
@@ -33,6 +35,7 @@ export function run(argv: string[]): void {
   registerList(program);
   registerDoctor(program);
   registerReview(program);
+  registerSetup(program);
 
   program.parse(argv);
 }
