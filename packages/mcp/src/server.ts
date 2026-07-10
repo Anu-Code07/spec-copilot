@@ -605,6 +605,14 @@ export async function createMcpServer(): Promise<Server> {
 }
 
 export async function startMcpServer(): Promise<void> {
+  if (process.stdin.isTTY) {
+    console.error(
+      'SpecDrive MCP is running and waiting for Cursor (stdio mode). No terminal output is normal.',
+    );
+    console.error('Setup in your project: spec setup cursor');
+    console.error('Press Ctrl+C to stop.');
+  }
+
   const server = await createMcpServer();
   const transport = new StdioServerTransport();
   await server.connect(transport);

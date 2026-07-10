@@ -96,5 +96,16 @@ export async function doctorProject(projectRoot: string): Promise<DoctorIssue[]>
     issues.unshift({ level: 'info', message: 'SpecDrive project is healthy' });
   }
 
+  const { getCursorSetupStatus } = await import('../integrations/cursor-setup-service.js');
+  const cursor = await getCursorSetupStatus(projectRoot);
+  if (!cursor.mcpConfigured) {
+    issues.push({
+      level: 'warning',
+      message: 'Cursor MCP not configured — run `spec setup cursor`',
+    });
+  } else {
+    issues.push({ level: 'info', message: 'Cursor MCP configured (.cursor/mcp.json)' });
+  }
+
   return issues;
 }

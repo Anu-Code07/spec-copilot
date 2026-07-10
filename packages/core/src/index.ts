@@ -113,3 +113,9 @@ export type {
   Design2CodeImportResult,
   Design2CodeTaskAttempt,
 } from './integrations/design2code-service.js';
+
+export {
+  setupCursorIntegration,
+  getCursorSetupStatus,
+} from './integrations/cursor-setup-service.js';
+export type { CursorSetupResult, CursorSetupOptions } from './integrations/cursor-setup-service.js';
