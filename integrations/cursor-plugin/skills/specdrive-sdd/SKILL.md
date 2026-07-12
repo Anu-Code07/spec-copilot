@@ -1,28 +1,39 @@
 ---
 name: specdrive-sdd
-description: Run SpecDrive frontend spec-driven development workflow via MCP. Use when creating feature specs, gap analysis, UI design docs, or implementation tasks for Flutter, Next.js, or React Native projects with .specdrive/.
+description: Run SpecDrive frontend spec-driven development via MCP. Use for create_spec, quick specs, gap analysis, design, tasks, cart/UI features, or when MCP returns NOT_INITIALIZED.
 ---
 
 # SpecDrive SDD Skill
 
-## When to use
+## Prerequisite check (do this first)
 
-- User wants Kiro-style specs for a frontend feature
-- Project has or needs `.specdrive/` folder
-- Creating `requirements.md`, `gap-analysis.md`, `design.md`, or `tasks.md`
+1. Confirm `.specdrive/config.yaml` exists in workspace root.
+2. If missing → tell user to run: `spec setup cursor --stack <flutter|nextjs|react-native>`
+3. Reload MCP in Cursor, then retry.
 
-## Workflow
+## Standard workflow
 
-1. **create_spec** — scaffold meta.yaml, get requirements generation bundle
-2. Generate requirements markdown using host AI, then **write_spec_document**
-3. **update_spec** gate=requirements
-4. **generate_gap_analysis** → write gap-analysis.md → approve gap_analysis gate
-5. **generate_design** → write design.md → approve design gate
-6. **generate_tasks** → write tasks.md → approve tasks gate
-7. **get_next_task** for implementation context
+1. **create_spec** `{ title, description?, type: "feature"|"bugfix" }`
+2. Use returned **bundle** prompts → generate markdown
+3. **write_spec_document** `{ slug, document, content }`
+4. **update_spec** `{ slug, gate }` — approve before next phase
+5. Repeat for gap-analysis → design → tasks
+6. **get_next_task** → implement → **complete_task**
 
-## Rules
+## Quick spec (small UI change)
 
-- SpecDrive MCP never calls LLM APIs — you generate documents
-- Use **scan_codebase** when you need fresh repo context
-- Bugfix specs use type=bugfix in create_spec
+Even for "quick" features, run the full gate pipeline (can keep docs concise):
+
+```
+create_spec → requirements → approve
+→ gap-analysis → approve → design → approve → tasks → approve
+→ get_next_task
+```
+
+## MCP never calls LLM
+
+You generate all documents. Use **scan_codebase** / **find_context** for repo context.
+
+## Full reference
+
+See `.cursor/rules/specdrive-cheatsheet.mdc` in this project.
