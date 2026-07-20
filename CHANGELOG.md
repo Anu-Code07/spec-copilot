@@ -4,6 +4,12 @@ All notable changes to SpecDrive are documented here.
 
 Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.1.6] - 2026-07-20
+
+### Added
+
+- One-command install: `npx -y @specdrive/mcp setup --stack flutter` (wires Cursor + Claude Desktop)
+
 ## [0.1.5] - 2026-07-20
 
 ### Fixed

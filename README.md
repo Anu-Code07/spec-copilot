@@ -49,19 +49,13 @@ Works with Cursor, Claude Code, Codex CLI, Gemini, Windsurf, Cline, Roo, Continu
 ## Quick Start
 
 ```bash
-# In your frontend app (recommended: MCP-first)
-npm install -g @specdrive/cli
+# In your frontend app — one command wires Cursor + Claude MCP
 cd your-flutter-app
-spec setup mcp --stack flutter
-# Reload MCP in Cursor/Claude → call tool: search_specs
-
-# Optional: CLI with free LLM
-export GEMINI_API_KEY=your-key
-spec create "Product Review Screen"
-spec gap-analysis --spec product-review-screen
+npx -y @specdrive/mcp setup --stack flutter
+# Reload MCP in Cursor → call tool: search_specs
 ```
 
-See [packages/mcp/README.md](packages/mcp/README.md) for universal MCP setup (Cursor, Claude, Windsurf, Cline, …).
+See [packages/mcp/README.md](packages/mcp/README.md) for details.
 
 ## CLI vs MCP (AI keys)
 
@@ -128,7 +122,7 @@ SpecDrive is ready for **real project use** when built from source. npm publish 
 | Release checklist | ✅ `pnpm release-check` |
 | MCP + CLI + review engine | ✅ |
 | Known limitations documented | ✅ [KNOWN-LIMITATIONS.md](docs/KNOWN-LIMITATIONS.md) |
-| npm publish | ✅ `@specdrive/*@0.1.5` |
+| npm publish | ✅ `@specdrive/*@0.1.6` |
 
 ```bash
 # Verify before release

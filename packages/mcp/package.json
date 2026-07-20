@@ -1,6 +1,6 @@
 {
   "name": "@specdrive/mcp",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "description": "SpecDrive MCP server for Cursor, Claude, and AI clients",
   "license": "MIT",
   "type": "module",

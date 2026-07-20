@@ -6,16 +6,22 @@ Connect SpecDrive to **Cursor, Claude Desktop, Windsurf, Cline, Continue**, or a
 
 ## Simple install (any IDE)
 
-In your **app project** root:
+In your **app project** root (Flutter / Next.js / RN):
 
 ```bash
-npm install -g @specdrive/cli
-spec setup mcp --stack flutter   # or nextjs | react-native
+npx -y @specdrive/mcp setup --stack flutter
 ```
 
-Then reload MCP in your IDE. Test: call tool `search_specs`.
+That one command:
 
-### Universal MCP config
+1. Creates `.specdrive/` if missing
+2. Writes/merges `.cursor/mcp.json` → **Cursor** picks up `specdrive`
+3. Merges Claude Desktop config when possible
+4. Leaves design2code / supabase / other MCPs alone
+
+Then: **Cursor → Settings → MCP → Reload** → you should see **specdrive**.
+
+### Universal MCP config (manual)
 
 All clients use the same server:
 

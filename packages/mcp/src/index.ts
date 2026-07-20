@@ -1,6 +1,6 @@
-import { startMcpServer } from './server.js';
+import { runMcpCli } from './cli.js';
 
-startMcpServer().catch((err) => {
-  console.error('SpecDrive MCP server error:', err);
+runMcpCli(process.argv).catch((err) => {
+  console.error('SpecDrive MCP error:', err);
   process.exit(1);
 });

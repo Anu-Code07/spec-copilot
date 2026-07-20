@@ -1,6 +1,6 @@
 {
   "name": "@specdrive/plugin-nextjs",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "description": "SpecDrive stack plugin for Next.js — App Router, Server/Client Components",
   "license": "MIT",
   "type": "module",
