@@ -31,8 +31,8 @@ describe('implement auto-figma', () => {
       autoFigma: true,
     });
 
-    expect(result.design2code?.taskKind).toBe('logic');
-    expect(result.design2code?.skipped).toBe(true);
+    expect(result.design2code).toBeUndefined();
+    expect(result.nextSteps.some((s) => s.reason?.includes('Logic'))).toBe(true);
     expect(result.context.task.title.toLowerCase()).toContain('state');
   });
 

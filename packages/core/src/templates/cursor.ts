@@ -139,9 +139,10 @@ No args. Lists all specs.
 
 ### get_next_task
 \`\`\`json
-{ "slug": "string?", "autoFigma": false, "figmaFileKey": "string?", "figmaToken": "string?" }
+{ "slug": "string?", "autoFigma": true, "figmaAction": "prompt"|"use"|"skip", "figmaToken": "string?", "figmaFileKey": "string?" }
 \`\`\`
-Set \`autoFigma: true\` for UI tasks when Design2Code + Figma are configured.
+On UI tasks: **ask user** for Figma token or skip. Retry with \`figmaToken\` + \`figmaAction: "use"\` or \`figmaAction: "skip"\`.
+Logic tasks (BLoC, nav, tests) always use host AI — never Design2Code.
 
 ### complete_task
 \`\`\`json

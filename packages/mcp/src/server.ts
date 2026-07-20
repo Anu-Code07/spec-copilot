@@ -6,6 +6,7 @@ import {
   ListResourcesRequestSchema,
   ReadResourceRequestSchema,
 } from '@modelcontextprotocol/sdk/types.js';
+import type { WorkflowStep } from '@specdrive/core';
 import {
   findProjectRoot,
   createSpec,
@@ -39,8 +40,26 @@ import {
   type Design2CodeFramework,
   type Design2CodeScope,
   type Design2CodeMergeStrategy,
+  stepsAfterCreateSpec,
+  stepsAfterDocument,
+  stepsAfterApproveGate,
+  stepsAfterCompleteTask,
+  formatWorkflowSteps,
+  type FigmaAction,
+  type SpecDocument as CoreSpecDocument,
 } from '@specdrive/core';
 import { cwd } from 'node:process';
+
+function mcpJson(payload: Record<string, unknown>): { content: Array<{ type: 'text'; text: string }> } {
+  return { content: [{ type: 'text', text: JSON.stringify(payload, null, 2) }] };
+}
+
+function withNextSteps<T extends Record<string, unknown>>(
+  data: T,
+  steps: WorkflowStep[],
+): T & { nextSteps: string[] } {
+  return { ...data, nextSteps: formatWorkflowSteps(steps) };
+}
 
 async function getRoot(): Promise<string> {
   const root = await findProjectRoot(cwd());
@@ -49,9 +68,9 @@ async function getRoot(): Promise<string> {
       [
         'Not a SpecDrive project — .specdrive/config.yaml missing in workspace root.',
         '',
-        'Fix (run in your app folder, then reload MCP in Cursor):',
+        'Fix (run in your app folder, then reload MCP):',
         '  npm install -g @specdrive/cli@0.1.2',
-        '  spec setup cursor --stack flutter',
+        '  spec setup mcp --stack flutter',
         '',
         `Current MCP cwd: ${cwd()}`,
       ].join('\n'),
@@ -194,17 +213,23 @@ export async function createMcpServer(): Promise<Server> {
       {
         name: 'get_next_task',
         description:
-          'Get implementation context for the next pending task. Set autoFigma=true to run Design2Code on UI tasks (skips logic tasks and when unavailable).',
+          'Get implementation context for the next pending task. UI tasks prompt for Figma token (provide or skip). Design2Code handles UI only; state/BLoC/navigation/tests stay with host AI.',
         inputSchema: {
           type: 'object',
           properties: {
             slug: { type: 'string' },
             autoFigma: {
               type: 'boolean',
-              description: 'Auto-run Design2Code for UI tasks; skip logic/state/navigation tasks',
+              description: 'Attempt Design2Code for UI tasks (default true). Set false to skip Figma flow.',
             },
-            figmaFileKey: { type: 'string', description: 'Figma file key or URL' },
-            figmaToken: { type: 'string', description: 'Figma token override' },
+            figmaAction: {
+              type: 'string',
+              enum: ['prompt', 'use', 'skip'],
+              description:
+                'prompt: ask user for token if missing (default). use: run Design2Code with figmaToken. skip: implement with host AI only.',
+            },
+            figmaFileKey: { type: 'string', description: 'Figma file key or URL (or .specdrive/figma.json)' },
+            figmaToken: { type: 'string', description: 'Figma Personal Access Token (figd_...) when user provides it' },
           },
         },
       },
@@ -406,18 +431,18 @@ export async function createMcpServer(): Promise<Server> {
           const bundleText = result.generationBundle
             ? formatGenerationBundle(result.generationBundle)
             : null;
-          return {
-            content: [{
-              type: 'text',
-              text: JSON.stringify({
+          return mcpJson(
+            withNextSteps(
+              {
                 slug: result.slug,
                 id: result.id,
                 paths: result.paths,
                 generated: result.generated,
                 bundle: bundleText ? JSON.parse(bundleText) : null,
-              }, null, 2),
-            }],
-          };
+              },
+              stepsAfterCreateSpec(result.slug, 'mcp'),
+            ),
+          );
         }
         case 'read_spec': {
           const slug = a.slug as string;
@@ -452,12 +477,11 @@ export async function createMcpServer(): Promise<Server> {
           return { content: [{ type: 'text', text: await readDoc(key) }] };
         }
         case 'update_spec': {
-          const meta = await approveGate(
-            root,
-            a.slug as string,
-            normalizeGate(a.gate as string),
+          const gate = normalizeGate(a.gate as string);
+          const meta = await approveGate(root, a.slug as string, gate);
+          return mcpJson(
+            withNextSteps({ meta }, stepsAfterApproveGate(meta, gate, 'mcp')),
           );
-          return { content: [{ type: 'text', text: JSON.stringify(meta, null, 2) }] };
         }
         case 'generate_gap_analysis': {
           const text = await getMcpGenerationBundle(root, a.slug as string, 'gap-analysis');
@@ -472,13 +496,20 @@ export async function createMcpServer(): Promise<Server> {
           return { content: [{ type: 'text', text }] };
         }
         case 'write_spec_document': {
+          const doc = a.document as SpecDocument;
+          const slug = a.slug as string;
           const filePath = await writeSpecDocument(
             root,
-            a.slug as string,
-            a.document as SpecDocument,
+            slug,
+            doc,
             a.content as string,
           );
-          return { content: [{ type: 'text', text: `Saved ${a.document} to ${filePath}` }] };
+          return mcpJson(
+            withNextSteps(
+              { saved: doc, path: filePath, slug },
+              stepsAfterDocument(slug, doc as CoreSpecDocument, 'mcp'),
+            ),
+          );
         }
         case 'scan_codebase': {
           const slug = await resolveSpecSlug(root, a.slug as string | undefined);
@@ -504,15 +535,39 @@ export async function createMcpServer(): Promise<Server> {
           const slug = await resolveSpecSlug(root, a.slug as string | undefined);
           const result = await getImplementContext(root, {
             spec: slug,
-            autoFigma: a.autoFigma === true,
+            autoFigma: a.autoFigma !== false,
             figmaFileKey: a.figmaFileKey as string | undefined,
             figmaToken: a.figmaToken as string | undefined,
+            figmaAction: (a.figmaAction as FigmaAction | undefined) ?? 'prompt',
+            surface: 'mcp',
           });
-          return { content: [{ type: 'text', text: formatImplementContext(result) }] };
+          const markdown = formatImplementContext(result);
+          return mcpJson(
+            withNextSteps(
+              {
+                slug,
+                taskId: result.context.task.id,
+                taskTitle: result.context.task.title,
+                figmaPrompt: result.figmaPrompt ?? null,
+                design2code: result.design2code ?? null,
+                contextMarkdown: markdown,
+              },
+              result.nextSteps,
+            ),
+          );
         }
         case 'complete_task': {
-          await completeTask(root, a.slug as string, a.taskId as string);
-          return { content: [{ type: 'text', text: `Task ${a.taskId} marked complete` }] };
+          const slug = a.slug as string;
+          const taskId = a.taskId as string;
+          await completeTask(root, slug, taskId);
+          const status = await getSpecStatus(root, slug);
+          const hasMore = status.tasksDone < status.tasksTotal;
+          return mcpJson(
+            withNextSteps(
+              { slug, taskId, completed: true },
+              stepsAfterCompleteTask(slug, taskId, 'mcp', hasMore),
+            ),
+          );
         }
         case 'review_code': {
           const slug = await resolveSpecSlug(root, a.slug as string | undefined);
@@ -619,11 +674,16 @@ export async function createMcpServer(): Promise<Server> {
 
 export async function startMcpServer(): Promise<void> {
   if (process.stdin.isTTY) {
-    console.error(
-      'SpecDrive MCP is running and waiting for Cursor (stdio mode). No terminal output is normal.',
-    );
-    console.error('Setup in your project: spec setup cursor');
-    console.error('Press Ctrl+C to stop.');
+    console.error('✓ SpecDrive MCP is installed and running (stdio mode).');
+    console.error('');
+    console.error('This is NORMAL — MCP servers wait silently for your IDE to connect.');
+    console.error('They do not print logs while idle. Test from Cursor/Claude chat, not this terminal.');
+    console.error('');
+    console.error('One-time project setup:');
+    console.error('  cd your-app && spec setup mcp --stack flutter');
+    console.error('');
+    console.error('Then reload MCP in your IDE and call tool: search_specs');
+    console.error('Press Ctrl+C to stop this test process.');
   }
 
   const server = await createMcpServer();

@@ -49,24 +49,19 @@ Works with Cursor, Claude Code, Codex CLI, Gemini, Windsurf, Cline, Roo, Continu
 ## Quick Start
 
 ```bash
-git clone https://github.com/Anu-Code07/spec-copilot.git
-cd spec-copilot
-pnpm install && pnpm build
+# In your frontend app (recommended: MCP-first)
+npm install -g @specdrive/cli
+cd your-flutter-app
+spec setup mcp --stack flutter
+# Reload MCP in Cursor/Claude → call tool: search_specs
 
-# In your frontend project
-spec init --stack flutter
-spec create "Product Review Screen" --quick   # all docs at once
-
-# Or gated Kiro-style workflow
+# Optional: CLI with free LLM
+export GEMINI_API_KEY=your-key
 spec create "Product Review Screen"
-spec approve requirements --spec product-review-screen
 spec gap-analysis --spec product-review-screen
-spec approve gap-analysis --spec product-review-screen
-spec design --spec product-review-screen
-spec approve design --spec product-review-screen
-spec tasks --spec product-review-screen
-spec implement --spec product-review-screen --next
 ```
+
+See [packages/mcp/README.md](packages/mcp/README.md) for universal MCP setup (Cursor, Claude, Windsurf, Cline, …).
 
 ## CLI vs MCP (AI keys)
 
