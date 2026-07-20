@@ -15,34 +15,35 @@ npx -y @specdrive/mcp setup --stack flutter
 
 Then: **Cursor → Settings → MCP → Reload** → look for **specdrive**.
 
-## MCP workflow (Kiro-style)
+## YOUR JOURNEY (Kiro-style)
 
 ```
-create_spec          → YOUR JOURNEY + brief bundle
-write_spec_document  → brief.md → STOP → human approve (update_spec userConfirmed:true)
-write_spec_document  → requirements.md → STOP → approve
-generate_gap_analysis → write → STOP → approve
-generate_design_hld  → write → STOP → approve
-generate_design_lld  → write → STOP → approve
-generate_tasks       → write → STOP → approve
-generate_maestro     → optional UI E2E map
-get_next_task        → only when ready_for_implementation=true
-complete_task / review_code
+1. brief          → write → STOP → human approve
+2. requirements   → write → STOP → approve
+3. gap-analysis   → generate → write → STOP → approve
+4. design-hld     → generate → write → STOP → approve
+5. design-lld     → generate → write → STOP → approve
+6. tasks          → generate → write → STOP → approve  ← last human gate
+7. implement      → get_next_task → complete_task
+                    (Design2Code only if user wants Figma on a UI task)
+8. validate       → review_code
 ```
 
 **Never auto-approve.** After every write, show `documentContent` to the user and wait.
+`update_spec` requires `userConfirmed: true`.
 
 ### Spec layout
 
 ```
 .specdrive/specs/features/YYYY-MM-DD[-TICKET]-<slug>/
   spec.json  brief.md  requirements.md  gap-analysis.md
-  design-hld.md  design-lld.md  tasks.md  maestro.md?
+  design-hld.md  design-lld.md  tasks.md
 ```
 
 ## UI tasks + Design2Code
 
-`get_next_task` on UI tasks: Cursor/Claude by default; optional Figma token for Design2Code.
+During **implement** (`get_next_task`), UI tasks go to Cursor/Claude by default.
+Optional: user provides a Figma token → Design2Code scaffolds UI first.
 
 ## Available tools
 
@@ -54,10 +55,11 @@ complete_task / review_code
 | `update_spec` | Human decision (`userConfirmed: true`) |
 | `generate_gap_analysis` | Gap bundle (cite real files) |
 | `generate_design_hld` / `generate_design_lld` | HLD / LLD bundles |
-| `generate_tasks` / `generate_maestro` | Tasks / optional E2E map |
-| `get_next_task` | Impl when ready_for_implementation |
+| `generate_tasks` | Checkbox tasks (last human gate) |
+| `get_next_task` | Impl when ready; optional Design2Code on UI+Figma |
 | `get_spec_status` | Gates + cheat sheet |
 | `figma_*` | Design2Code helpers |
+| `review_code` | Validate against HLD/LLD |
 
 ## CLI mode (optional)
 

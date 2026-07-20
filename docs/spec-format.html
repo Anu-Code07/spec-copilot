@@ -40,7 +40,7 @@
     <div class="container">
       <header class="page-header">
         <h1>Spec format</h1>
-        <p>Kiro-style artifacts per feature: brief → requirements → gap → HLD → LLD → tasks (+ optional maestro), tracked by <code>spec.json</code>.</p>
+        <p>Kiro-style artifacts per feature: brief → requirements → gap → HLD → LLD → tasks → implement → validate, tracked by <code>spec.json</code>.</p>
       </header>
 
       <section>
@@ -63,7 +63,6 @@
     │   ├── design-lld.md
     │   ├── decisions.md      # optional ADRs
     │   ├── tasks.md          # checkbox tasks [ ] / [x]
-    │   ├── maestro.md        # optional UI E2E map
     │   └── impl-validation.md
     ├── bugs/…
     └── tech-debt/…</code></pre>
@@ -71,15 +70,15 @@
 
       <section>
         <h2>Gate order (YOUR JOURNEY)</h2>
-        <div class="workflow"><span class="step">brief</span> → approve →
-<span class="step">requirements</span> → approve →
-<span class="step">gap_analysis</span> → approve →
-<span class="step">design_hld</span> → approve →
-<span class="step">design_lld</span> → approve →
-<span class="step">tasks</span> → approve →
-<span class="step">maestro</span> (optional) →
-ready_for_implementation → implement → validate</div>
-        <p>Tracked in <code>spec.json</code>: each gate has <code>generated</code> + <code>approved</code>. Implement unlocks only when <code>ready_for_implementation: true</code>.</p>
+        <div class="workflow"><span class="step">1 brief</span> → approve →
+<span class="step">2 requirements</span> → approve →
+<span class="step">3 gap_analysis</span> → approve →
+<span class="step">4 design_hld</span> → approve →
+<span class="step">5 design_lld</span> → approve →
+<span class="step">6 tasks</span> → approve (last human gate) →
+<span class="step">7 implement</span> (Design2Code optional on UI+Figma) →
+<span class="step">8 validate</span></div>
+        <p>Tracked in <code>spec.json</code>: each gate has <code>generated</code> + <code>approved</code>. Implement unlocks only when <code>ready_for_implementation: true</code> (after tasks approved).</p>
       </section>
 
       <section>

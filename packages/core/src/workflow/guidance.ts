@@ -167,16 +167,11 @@ export function stepsAfterApproveGate(
       },
       tasks: {
         action: `generate_tasks { slug: "${slug}" }`,
-        reason: 'LLD approved — sequenced checkbox tasks',
+        reason: 'LLD approved — sequenced checkbox tasks (last human gate)',
       },
       implementing: {
         action: `get_next_task { slug: "${slug}" }`,
-        reason: 'All required gates approved',
-      },
-      maestro: {
-        action: `generate_maestro { slug: "${slug}" }`,
-        reason: 'Optional UI E2E map',
-        optional: true,
+        reason: 'Tasks approved — Design2Code only if user wants Figma on a UI task',
       },
     };
 

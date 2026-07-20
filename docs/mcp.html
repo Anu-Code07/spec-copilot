@@ -156,15 +156,14 @@ npx -y @specdrive/mcp setup --stack flutter</code></pre>
           </p>
         </div>
         <div class="workflow"><span class="step">create_spec</span>           → YOUR JOURNEY + brief bundle
-<span class="step">write_spec_document</span>  → brief.md → STOP → you approve
-<span class="step">write_spec_document</span>  → requirements.md → STOP → approve
-<span class="step">generate_gap_analysis</span> → write → STOP → approve
-<span class="step">generate_design_hld</span>   → write → STOP → approve
-<span class="step">generate_design_lld</span>   → write → STOP → approve
-<span class="step">generate_tasks</span>         → write → STOP → approve
-<span class="step">generate_maestro</span>       → optional UI E2E map
-<span class="step">get_next_task</span>          → when ready_for_implementation=true
-<span class="step">review_code</span>            → validate</div>
+<span class="step">1 brief</span>               → write → STOP → you approve
+<span class="step">2 requirements</span>        → write → STOP → approve
+<span class="step">3 generate_gap_analysis</span> → write → STOP → approve
+<span class="step">4 generate_design_hld</span>   → write → STOP → approve
+<span class="step">5 generate_design_lld</span>   → write → STOP → approve
+<span class="step">6 generate_tasks</span>         → write → STOP → approve (last human gate)
+<span class="step">7 get_next_task</span>          → implement (Design2Code only if user wants Figma on a UI task)
+<span class="step">8 review_code</span>            → validate</div>
         <p>Works in <strong>any repo</strong> — edit <code>.specdrive/steering/</code> so paths match your packages.</p>
       </section>
 
@@ -234,10 +233,9 @@ spec implement --spec my-feature --next --figma-skip</code></pre>
             <tr><td><code>generate_gap_analysis</code></td><td>Gap-analysis bundle (cite real files)</td></tr>
             <tr><td><code>generate_design_hld</code></td><td>High-level design bundle</td></tr>
             <tr><td><code>generate_design_lld</code></td><td>Low-level design bundle</td></tr>
-            <tr><td><code>generate_tasks</code></td><td>Checkbox task list bundle</td></tr>
-            <tr><td><code>generate_maestro</code></td><td>Optional E2E semantics map</td></tr>
+            <tr><td><code>generate_tasks</code></td><td>Checkbox task list bundle (last human gate)</td></tr>
             <tr><td><code>scan_codebase</code></td><td>Scan repo for source context</td></tr>
-            <tr><td><code>get_next_task</code></td><td>Impl context when ready_for_implementation; UI → host AI by default</td></tr>
+            <tr><td><code>get_next_task</code></td><td>Impl when ready_for_implementation; Design2Code optional on UI tasks if user provides Figma token</td></tr>
             <tr><td><code>get_spec_status</code></td><td>Phase, gates, ready flag + phase cheat sheet</td></tr>
             <tr><td><code>figma_status</code></td><td>Check Design2Code + FIGMA_TOKEN setup</td></tr>
             <tr><td><code>figma_import</code></td><td>Import Figma file to Design AST</td></tr>

@@ -41,7 +41,7 @@ export const JOURNEY_STEPS: SpecJourneyStep[] = [
   {
     n: 2,
     phase: 'requirements',
-    mcpTool: 'generate_requirements / write → STOP → user approve → update_spec',
+    mcpTool: 'write_spec_document (requirements) → STOP → user approve → update_spec',
     what: 'User stories + EARS acceptance criteria',
     humanGate: true,
   },
@@ -70,28 +70,20 @@ export const JOURNEY_STEPS: SpecJourneyStep[] = [
     n: 6,
     phase: 'tasks',
     mcpTool: 'generate_tasks → write → STOP → user approve → update_spec',
-    what: 'Small checkbox tasks [ ] scoped to real files',
+    what: 'Small checkbox tasks [ ] scoped to real files — last human gate',
     humanGate: true,
   },
   {
     n: 7,
-    phase: 'maestro',
-    mcpTool: 'generate_maestro → write → STOP → user approve (UI features)',
-    what: 'E2E semantics map (optional — UI features)',
-    humanGate: true,
-    optional: true,
-  },
-  {
-    n: 8,
     phase: 'implement',
     mcpTool: 'get_next_task → implement → complete_task',
-    what: 'Only when ready_for_implementation=true',
+    what: 'Build when ready_for_implementation=true (Design2Code only if user wants Figma on a UI task)',
     humanGate: false,
   },
   {
-    n: 9,
+    n: 8,
     phase: 'validate',
-    mcpTool: 'review_code / impl-validation',
+    mcpTool: 'review_code',
     what: 'Validate against HLD/LLD + requirements',
     humanGate: false,
   },
@@ -122,9 +114,10 @@ export function buildSpecCreatedJourney(params: {
     `  Stack:    ${params.stack}`,
     params.ticket ? `  Ticket:   ${params.ticket}` : null,
     `  Workflow: ${configuration.workflow}`,
-    '  Artifacts: brief [Y] · requirements [Y] · gap-analysis [Y] · HLD [Y] · LLD [Y] · tasks [Y] · maestro [opt]',
-    '  Approvals: HUMAN required at every gate — never auto-approve',
-    '  Unlock:    ready_for_implementation=true only after all required gates approved',
+    '  Artifacts: brief [Y] · requirements [Y] · gap-analysis [Y] · HLD [Y] · LLD [Y] · tasks [Y]',
+    '  Approvals: HUMAN required through tasks — never auto-approve',
+    '  Unlock:    ready_for_implementation=true after tasks approved → get_next_task',
+    '  Design2Code: optional on UI tasks only (user provides Figma token or skips)',
     '',
     'YOUR JOURNEY',
     ...JOURNEY_STEPS.map((s) => {
@@ -173,7 +166,7 @@ export function buildPhaseCheatSheet(params: {
   document?: SpecDocument;
 }): string {
   const pending = (
-    ['brief', 'requirements', 'gap_analysis', 'design_hld', 'design_lld', 'tasks', 'maestro'] as GateName[]
+    ['brief', 'requirements', 'gap_analysis', 'design_hld', 'design_lld', 'tasks'] as GateName[]
   )
     .filter((g) => {
       const gate = params.meta.gates[g];
@@ -196,6 +189,7 @@ export function buildPhaseCheatSheet(params: {
     '5. Read steering (product / structure / tech / coding-style) before designing',
     '6. Gap analysis cites real files from the scan — do not invent modules',
     '7. Tasks are small, file-scoped, checkboxed `- [ ]` / `- [x]`',
+    '8. Design2Code is optional on UI tasks during implement — not a separate phase',
     '',
     '## Reply map',
     '| User says | You do |',
@@ -205,7 +199,7 @@ export function buildPhaseCheatSheet(params: {
     '| reject | stop; mark gate rejected if they confirm |',
     '',
     '## Pipeline',
-    'brief → requirements → gap-analysis → design-hld → design-lld → tasks → (maestro) → implement → validate',
+    'brief → requirements → gap-analysis → design-hld → design-lld → tasks → implement → validate',
     '',
     params.document
       ? `Current document focus: **${params.document}**`

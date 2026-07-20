@@ -239,7 +239,7 @@ function workflowFor(document: SpecDocument): { afterSave: string; nextStep: str
     tasks: {
       afterSave: stop('tasks.md'),
       nextStep:
-        'After approve: update_spec { userConfirmed: true, gate: "tasks" }. If UI feature, optional generate_maestro; else get_next_task when ready_for_implementation=true.',
+        'After approve: update_spec { userConfirmed: true, gate: "tasks" }. Then get_next_task when ready_for_implementation=true. Design2Code is optional on UI tasks only if the user provides a Figma token.',
     },
     maestro: {
       afterSave: stop('maestro.md'),

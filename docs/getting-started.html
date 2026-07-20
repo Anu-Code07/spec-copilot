@@ -111,15 +111,15 @@ npx -y @specdrive/mcp setup --stack flutter</code></pre>
             <pre><code>create_spec { "title": "Product Review Screen", "ticket": "OPTIONAL-123" }
   → shows YOUR JOURNEY card
 
-write brief.md → STOP → you approve → update_spec { userConfirmed: true }
-write requirements.md → STOP → approve
-generate_gap_analysis → write → STOP → approve
-generate_design_hld → write → STOP → approve
-generate_design_lld → write → STOP → approve
-generate_tasks → write → STOP → approve
-(optional) generate_maestro → approve
-get_next_task  # only when ready_for_implementation=true
-  → implement → complete_task → review_code</code></pre>
+1. brief.md → STOP → you approve
+2. requirements.md → STOP → approve
+3. generate_gap_analysis → write → STOP → approve
+4. generate_design_hld → write → STOP → approve
+5. generate_design_lld → write → STOP → approve
+6. generate_tasks → write → STOP → approve   ← last human gate
+7. get_next_task → implement → complete_task
+   (Design2Code only if user wants Figma on a UI task)
+8. review_code</code></pre>
           </div>
           <p>Each tool response includes <strong>nextSteps</strong> and a phase <strong>cheat sheet</strong>. Edit <code>.specdrive/steering/*</code> so gap/HLD/LLD target <em>your</em> real package paths.</p>
         </section>

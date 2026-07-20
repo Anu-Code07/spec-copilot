@@ -282,13 +282,14 @@ Works in **any repo**. Steering = source of truth for paths/architecture.
 ## YOUR JOURNEY
 
 \`\`\`
-create_spec → brief → STOP → approve
-→ requirements → STOP → approve
-→ gap-analysis → STOP → approve
-→ design-hld → STOP → approve
-→ design-lld → STOP → approve
-→ tasks → STOP → approve
-→ (optional maestro) → get_next_task (ready_for_implementation=true)
+1. brief → STOP → approve
+2. requirements → STOP → approve
+3. gap-analysis → STOP → approve
+4. design-hld → STOP → approve
+5. design-lld → STOP → approve
+6. tasks → STOP → approve   ← last human gate
+7. implement → get_next_task (Design2Code only if user wants Figma on a UI task)
+8. validate → review_code
 \`\`\`
 
 ## Hard rules
