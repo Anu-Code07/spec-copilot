@@ -128,6 +128,9 @@ export {
 } from './integrations/mcp-setup-service.js';
 export type { McpSetupResult, McpSetupOptions, McpServerConfig } from './integrations/mcp-setup-service.js';
 
+export { installSpecdriveMcp } from './integrations/mcp-install-service.js';
+export type { InstallMcpOptions, InstallMcpResult } from './integrations/mcp-install-service.js';
+
 export {
   stepsAfterCreateSpec,
   stepsAfterDocument,

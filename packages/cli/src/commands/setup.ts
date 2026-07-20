@@ -3,7 +3,7 @@ import chalk from 'chalk';
 import {
   initProject,
   setupCursorIntegration,
-  setupMcpIntegration,
+  installSpecdriveMcp,
   type FrontendStack,
   fileExists,
   defaultProjectPaths,
@@ -29,10 +29,9 @@ export function registerSetup(program: Command): void {
     .action(() => {
       console.log(chalk.bold('SpecDrive setup'));
       console.log('');
-      console.log('  spec setup mcp --stack flutter     # any MCP IDE (recommended)');
+      console.log('  npx -y @specdrive/mcp setup --stack flutter   # recommended');
+      console.log('  spec setup mcp --stack flutter');
       console.log('  spec setup cursor --stack flutter  # MCP + Cursor rules/skills');
-      console.log('');
-      console.log(chalk.dim('Need @specdrive/cli@0.1.5+: npm install -g @specdrive/cli@latest'));
     });
 
   setup
@@ -56,23 +55,15 @@ export function registerSetup(program: Command): void {
 
         await ensureInitialized(root, stack);
 
-        const result = await setupMcpIntegration({
+        const result = await installSpecdriveMcp({
           projectRoot: root,
-          absoluteCwd: root,
+          stack,
           figmaToken: opts.figmaToken,
           force: opts.force,
+          writeClaudeDesktop: true,
         });
 
-        console.log(chalk.green('✓ MCP configuration written'));
-        console.log(chalk.dim(`  ${result.projectMcpConfigPath}`));
-        if (result.cursorConfigPath) {
-          console.log(
-            result.cursorConfigUpdated
-              ? chalk.green(`✓ Updated ${result.cursorConfigPath}`)
-              : chalk.dim(`• ${result.cursorConfigPath} already configured`),
-          );
-        }
-
+        console.log(chalk.green('✓ MCP wired'));
         console.log('');
         for (const line of result.instructions) {
           console.log(line);
@@ -103,11 +94,12 @@ export function registerSetup(program: Command): void {
 
         const didInit = await ensureInitialized(root, stack);
 
-        await setupMcpIntegration({
+        await installSpecdriveMcp({
           projectRoot: root,
-          absoluteCwd: root,
+          stack,
           figmaToken: opts.figmaToken,
           force: opts.force,
+          writeClaudeDesktop: true,
         });
 
         const result = await setupCursorIntegration(root, {
@@ -146,9 +138,6 @@ export function registerSetup(program: Command): void {
         console.log('  1. Restart Cursor (or Settings → MCP → Reload)');
         console.log('  2. Confirm "specdrive" appears under MCP servers');
         console.log('  3. In chat, ask: use search_specs MCP tool');
-        console.log('');
-        console.log(chalk.dim('Note: npx -y @specdrive/mcp showing a waiting message means it IS installed.'));
-        console.log(chalk.dim('MCP uses stdio — it only activates when your IDE connects.'));
         if (didInit) {
           console.log('');
           console.log('Create your first spec via MCP: create_spec { "title": "Your feature" }');

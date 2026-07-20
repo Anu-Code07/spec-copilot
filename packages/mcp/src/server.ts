@@ -49,6 +49,7 @@ import {
   type SpecDocument as CoreSpecDocument,
 } from '@specdrive/core';
 import { cwd } from 'node:process';
+import { SPECDRIVE_PACKAGE_VERSION } from '@specdrive/core';
 
 function mcpJson(payload: Record<string, unknown>): { content: Array<{ type: 'text'; text: string }> } {
   return { content: [{ type: 'text', text: JSON.stringify(payload, null, 2) }] };
@@ -674,16 +675,9 @@ export async function createMcpServer(): Promise<Server> {
 
 export async function startMcpServer(): Promise<void> {
   if (process.stdin.isTTY) {
-    console.error('✓ SpecDrive MCP is installed and running (stdio mode).');
-    console.error('');
-    console.error('This is NORMAL — MCP servers wait silently for your IDE to connect.');
-    console.error('They do not print logs while idle. Test from Cursor/Claude chat, not this terminal.');
-    console.error('');
-    console.error('One-time project setup:');
-    console.error('  cd your-app && spec setup mcp --stack flutter');
-    console.error('');
-    console.error('Then reload MCP in your IDE and call tool: search_specs');
-    console.error('Press Ctrl+C to stop this test process.');
+    console.error(`✓ SpecDrive MCP v${SPECDRIVE_PACKAGE_VERSION} ready (stdio).`);
+    console.error('To wire this project for Cursor/Claude:');
+    console.error('  npx -y @specdrive/mcp setup --stack flutter');
   }
 
   const server = await createMcpServer();

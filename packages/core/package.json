@@ -1,6 +1,6 @@
 {
   "name": "@specdrive/core",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "description": "SpecDrive core domain model, spec engine, and knowledge base",
   "license": "MIT",
   "type": "module",
