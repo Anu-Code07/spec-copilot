@@ -32,7 +32,7 @@ describe('workflow guidance', () => {
       figmaPromptNeeded: true,
     });
     expect(steps.some((s) => s.action.includes('figmaToken'))).toBe(true);
-    expect(steps.some((s) => s.action.includes('skip'))).toBe(true);
+    expect(steps.some((s) => s.action.includes('Cursor/Claude'))).toBe(true);
   });
 
   it('formats steps as numbered list', () => {

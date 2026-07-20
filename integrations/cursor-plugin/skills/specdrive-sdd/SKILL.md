@@ -18,11 +18,13 @@ description: Run SpecDrive frontend spec-driven development via MCP. Use for cre
 3. **write_spec_document** `{ slug, document, content }`
 4. **update_spec** `{ slug, gate }` — approve before next phase
 5. Repeat for gap-analysis → design → tasks
-6. **get_next_task** → on UI tasks ask user for Figma token or skip → implement → **complete_task**
+6. **get_next_task** → UI tasks: ask Cursor/Claude to implement (optional Figma token for Design2Code) → **complete_task**
 
-## Figma at task time
+## Figma at task time (optional)
 
-If `get_next_task` returns `figmaPrompt`, ask the user to provide a Figma token or skip Design2Code.
+If `get_next_task` returns `figmaPrompt`:
+- **Skip (recommended default)** → Cursor/Claude implements the UI from `design.md`
+- **Provide token** → Design2Code scaffolds UI first, then host AI finishes
 
 ## Quick spec (small UI change)
 

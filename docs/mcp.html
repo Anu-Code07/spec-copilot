@@ -205,7 +205,7 @@ spec implement --spec my-feature --next --figma-skip</code></pre>
         <table>
           <thead><tr><th>Task type</th><th>Who implements</th></tr></thead>
           <tbody>
-            <tr><td>Scaffold screen, UI components</td><td>Design2Code (if installed + Figma linked)</td></tr>
+            <tr><td>UI, widget, screen, layout</td><td><strong>Cursor/Claude</strong> (default). Optional Design2Code scaffold if Figma token provided</td></tr>
             <tr><td>Wire state / BLoC / navigation / validation / tests</td><td>Cursor/Claude via SpecDrive context</td></tr>
           </tbody>
         </table>
@@ -225,7 +225,7 @@ spec implement --spec my-feature --next --figma-skip</code></pre>
             <tr><td><code>generate_design</code></td><td>Design generation bundle</td></tr>
             <tr><td><code>generate_tasks</code></td><td>Tasks generation bundle</td></tr>
             <tr><td><code>scan_codebase</code></td><td>Scan repo for source context</td></tr>
-            <tr><td><code>get_next_task</code></td><td>Implementation context; <code>autoFigma: true</code> runs Design2Code on UI tasks</td></tr>
+            <tr><td><code>get_next_task</code></td><td>Implementation context; UI → Cursor/Claude by default; optional Figma/Design2Code</td></tr>
             <tr><td><code>figma_status</code></td><td>Check Design2Code + FIGMA_TOKEN setup</td></tr>
             <tr><td><code>figma_import</code></td><td>Import Figma/MCP Figma file to Design AST</td></tr>
             <tr><td><code>figma_generate</code></td><td>Generate code from Figma/AST</td></tr>

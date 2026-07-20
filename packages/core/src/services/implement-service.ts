@@ -30,7 +30,7 @@ export interface FigmaPrompt {
   needed: true;
   message: string;
   taskKind: 'ui' | 'unknown';
-  options: Array<'provide_token' | 'skip'>;
+  options: Array<'provide_token' | 'skip_and_use_host_ai'>;
   hint: string;
 }
 
@@ -134,9 +134,9 @@ export async function getImplementContext(
           needed: true,
           taskKind: taskKind === 'ui' ? 'ui' : 'unknown',
           message:
-            'This task looks like UI work. Design2Code can scaffold widgets/screens from Figma. Provide a Figma Personal Access Token (figd_...) or skip to implement with your host AI.',
-          options: ['provide_token', 'skip'],
-          hint: 'Get token: https://www.figma.com/settings → Personal access tokens',
+            'This is a UI task (widget/screen/layout). Ask Cursor/Claude to implement it from design.md. Optionally, the user can provide a Figma Personal Access Token (figd_...) so Design2Code scaffolds the UI first — or skip Figma and let the host AI build the UI.',
+          options: ['provide_token', 'skip_and_use_host_ai'],
+          hint: 'Default: skip → Cursor/Claude implements UI. Token optional for Design2Code.',
         },
         nextSteps,
       };
@@ -203,8 +203,8 @@ export function formatImplementContext(result: ImplementResult | ImplementContex
     lines.push(`**Options:** ${figmaPrompt.options.join(' | ')}`);
     lines.push(`**Hint:** ${figmaPrompt.hint}`);
     lines.push('');
-    lines.push('MCP: retry `get_next_task` with `figmaToken` + `figmaAction: "use"`, or `figmaAction: "skip"`.');
-    lines.push('CLI: retry with `--figma-token <token>` or omit `--auto-figma`.');
+    lines.push('MCP: retry `get_next_task` with `figmaToken` + `figmaAction: "use"` for Design2Code, or `figmaAction: "skip"` so Cursor/Claude implements the UI.');
+    lines.push('CLI: `--figma-token <token>` for Design2Code, or `--figma-skip` for host AI.');
     lines.push('');
   }
 

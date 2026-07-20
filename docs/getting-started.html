@@ -120,10 +120,10 @@ get_next_task         → implement → complete_task</code></pre>
 
         <section class="reveal" id="figma">
           <h2>3. UI tasks + Figma (optional)</h2>
-          <p>On <code>get_next_task</code>, UI tasks prompt for a Figma token or skip:</p>
+          <p>On <code>get_next_task</code>, UI tasks go to <strong>Cursor/Claude</strong> by default. Figma is optional:</p>
           <ul>
-            <li><strong>Provide token</strong> → Design2Code scaffolds widgets/screens</li>
-            <li><strong>Skip</strong> → Cursor/Claude implements from <code>design.md</code></li>
+            <li><strong>Skip (default)</strong> → Cursor/Claude implements screens, widgets, layout from <code>design.md</code></li>
+            <li><strong>Provide Figma token</strong> → Design2Code can scaffold UI first, then host AI finishes</li>
             <li>State, BLoC, navigation, validation, tests always stay with host AI</li>
           </ul>
           <p>See <a href="mcp.html#figma">MCP Figma setup</a>.</p>
