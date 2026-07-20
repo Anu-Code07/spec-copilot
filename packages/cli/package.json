@@ -1,6 +1,6 @@
 {
   "name": "@specdrive/cli",
-  "version": "0.1.7",
+  "version": "0.1.8",
   "description": "SpecDrive CLI — frontend spec-driven development",
   "license": "MIT",
   "type": "module",

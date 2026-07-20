@@ -1,6 +1,6 @@
 {
   "name": "@specdrive/plugin-react-native",
-  "version": "0.1.7",
+  "version": "0.1.8",
   "description": "SpecDrive stack plugin for React Native — Expo, React Navigation",
   "license": "MIT",
   "type": "module",

@@ -16,7 +16,11 @@ export {
   loadMeta,
   saveMeta,
   listSpecSlugs,
+  listSpecLocations,
   nextSpecId,
+  resolveFeaturePaths,
+  buildFolderName,
+  normalizeMeta,
 } from './infrastructure/files.js';
 
 export {
@@ -39,6 +43,8 @@ export {
   approveGate,
   generateGapAnalysis,
   generateDesign,
+  generateDesignHld,
+  generateDesignLld,
   generateTasks,
   getMcpGenerationBundle,
   listSpecs,
@@ -146,3 +152,21 @@ export {
   formatWorkflowStepsMarkdown,
 } from './workflow/guidance.js';
 export type { WorkflowStep, WorkflowSurface } from './workflow/guidance.js';
+
+export {
+  buildSpecCreatedJourney,
+  buildPhaseCheatSheet,
+} from './workflow/journey.js';
+export type { SpecCreatedJourney, SpecJourneyStep } from './workflow/journey.js';
+
+export {
+  buildApprovalBrief,
+  applyApprovalDecision,
+  documentToGate,
+  gateLabel,
+} from './services/approval-service.js';
+export type {
+  ApprovalBrief,
+  ApprovalDecision,
+  ApprovalResult,
+} from './services/approval-service.js';

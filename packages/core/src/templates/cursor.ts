@@ -71,25 +71,24 @@ SpecDrive **never** calls an LLM in MCP mode.
 
 ---
 
-## 2. Document pipeline (never skip gates)
+## 2. Document pipeline (never skip gates / never auto-approve)
 
 \`\`\`
-create_spec
-  → write_spec_document (requirements)
-  → update_spec (gate=requirements)
-generate_gap_analysis
-  → write_spec_document (gap-analysis)
-  → update_spec (gate=gap-analysis)
-generate_design
-  → write_spec_document (design)
-  → update_spec (gate=design)
-generate_tasks
-  → write_spec_document (tasks)
-  → update_spec (gate=tasks)
+create_spec → YOUR JOURNEY card
+  → write brief → STOP → user approve → update_spec { userConfirmed: true }
+  → requirements → STOP → approve
+generate_gap_analysis → write → STOP → approve
+generate_design_hld → write → STOP → approve
+generate_design_lld → write → STOP → approve
+generate_tasks → write → STOP → approve
+(optional) generate_maestro → approve
 get_next_task → implement → complete_task → review_code
 \`\`\`
 
-Files live at: \`.specdrive/specs/{slug}/\`
+Files: \`.specdrive/specs/features/YYYY-MM-DD[-TICKET]-{slug}/\`
+Meta: \`spec.json\` with \`ready_for_implementation\`
+
+**Hard rule:** after \`write_spec_document\`, show full \`documentContent\` and STOP.
 
 ---
 
@@ -273,42 +272,33 @@ CLI uses free LLM; MCP uses Cursor's model.
 export function cursorSddSkill(): string {
   return `---
 name: specdrive-sdd
-description: Run SpecDrive frontend spec-driven development via MCP. Use for create_spec, quick specs, gap analysis, design, tasks, cart/UI features, or when MCP returns NOT_INITIALIZED.
+description: Run SpecDrive Kiro-style frontend SDD via MCP. Use for create_spec, brief, gap, HLD/LLD, tasks, or NOT_INITIALIZED.
 ---
 
-# SpecDrive SDD Skill
+# SpecDrive SDD Skill (Kiro-style)
 
-## Prerequisite check (do this first)
+Works in **any repo**. Steering = source of truth for paths/architecture.
 
-1. Confirm \`.specdrive/config.yaml\` exists in workspace root.
-2. If missing → tell user to run: \`spec setup cursor --stack <flutter|nextjs|react-native>\`
-3. Reload MCP in Cursor, then retry.
-
-## Standard workflow
-
-1. **create_spec** \`{ title, description?, type: "feature"|"bugfix" }\`
-2. Use returned **bundle** prompts → generate markdown
-3. **write_spec_document** \`{ slug, document, content }\`
-4. **update_spec** \`{ slug, gate }\` — approve before next phase
-5. Repeat for gap-analysis → design → tasks
-6. **get_next_task** → implement → **complete_task**
-
-## Quick spec (small UI change)
-
-Even for "quick" features, run the full gate pipeline (can keep docs concise):
+## YOUR JOURNEY
 
 \`\`\`
-create_spec → requirements → approve
-→ gap-analysis → approve → design → approve → tasks → approve
-→ get_next_task
+create_spec → brief → STOP → approve
+→ requirements → STOP → approve
+→ gap-analysis → STOP → approve
+→ design-hld → STOP → approve
+→ design-lld → STOP → approve
+→ tasks → STOP → approve
+→ (optional maestro) → get_next_task (ready_for_implementation=true)
 \`\`\`
 
-## MCP never calls LLM
+## Hard rules
 
-You generate all documents. Use **scan_codebase** / **find_context** for repo context.
+1. After write_spec_document → show FULL documentContent → STOP
+2. Never update_spec without userConfirmed: true
+3. Cite real files in gap analysis — no invented modules
+4. Implement under steering/structure.md paths only
+5. Tasks: small, file-scoped, checkboxes [ ] / [x]
 
-## Full reference
-
-See \`.cursor/rules/specdrive-cheatsheet.mdc\` in this project.
+See \`.cursor/rules/specdrive-cheatsheet.mdc\`
 `;
 }

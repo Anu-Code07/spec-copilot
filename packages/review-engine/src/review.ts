@@ -79,7 +79,22 @@ export async function runReview(
   try {
     designContent = await readFile(specPaths.design, 'utf-8');
   } catch {
-    add('error', 'design', 'design.md not found — run spec design');
+    // Prefer HLD+LLD (Kiro-style) when legacy design.md is absent
+    const parts: string[] = [];
+    for (const key of ['designHld', 'designLld'] as const) {
+      const p = (specPaths as Record<string, string>)[key];
+      if (!p) continue;
+      try {
+        parts.push(await readFile(p, 'utf-8'));
+      } catch {
+        // missing
+      }
+    }
+    if (parts.length) {
+      designContent = parts.join('\n\n');
+    } else {
+      add('error', 'design', 'design-hld.md / design-lld.md / design.md not found — run spec design');
+    }
   }
 
   try {

@@ -1,45 +1,50 @@
 ---
 name: specdrive-sdd
-description: Run SpecDrive frontend spec-driven development via MCP. Use for create_spec, quick specs, gap analysis, design, tasks, cart/UI features, or when MCP returns NOT_INITIALIZED.
+description: Run SpecDrive Kiro-style frontend SDD via MCP. Use for create_spec, brief, gap analysis, HLD/LLD, tasks, or when MCP returns NOT_INITIALIZED.
 ---
 
-# SpecDrive SDD Skill
+# SpecDrive SDD Skill (Kiro-style)
 
-## Prerequisite check (do this first)
+Works in **any repo**. Steering files are the source of truth for package paths and architecture.
 
-1. Confirm `.specdrive/config.yaml` exists in workspace root.
-2. If missing → tell user to run: `spec setup mcp --stack <flutter|nextjs|react-native>`
-3. Reload MCP in Cursor, then retry.
+## Prerequisite
 
-## Standard workflow
+1. Confirm `.specdrive/config.yaml` exists.
+2. If missing → `npx -y @specdrive/mcp setup --stack <flutter|nextjs|react-native>`
+3. Edit `.specdrive/steering/*` for THIS repo before designing.
+4. Reload MCP, then retry.
 
-1. **create_spec** `{ title, description?, type: "feature"|"bugfix" }`
-2. Use returned **bundle** prompts → generate markdown
-3. **write_spec_document** `{ slug, document, content }`
-4. **update_spec** `{ slug, gate }` — approve before next phase
-5. Repeat for gap-analysis → design → tasks
-6. **get_next_task** → UI tasks: ask Cursor/Claude to implement (optional Figma token for Design2Code) → **complete_task**
-
-## Figma at task time (optional)
-
-If `get_next_task` returns `figmaPrompt`:
-- **Skip (recommended default)** → Cursor/Claude implements the UI from `design.md`
-- **Provide token** → Design2Code scaffolds UI first, then host AI finishes
-
-## Quick spec (small UI change)
-
-Even for "quick" features, run the full gate pipeline (can keep docs concise):
+## YOUR JOURNEY (never skip / never auto-approve)
 
 ```
-create_spec → requirements → approve
-→ gap-analysis → approve → design → approve → tasks → approve
-→ get_next_task
+create_spec
+  → write brief → STOP → user approve → update_spec { userConfirmed: true }
+  → requirements → STOP → approve
+  → generate_gap_analysis → write → STOP → approve
+  → generate_design_hld → write → STOP → approve
+  → generate_design_lld → write → STOP → approve
+  → generate_tasks → write → STOP → approve
+  → (optional) generate_maestro → approve
+  → get_next_task  (only when ready_for_implementation=true)
+  → complete_task → review_code
 ```
 
-## MCP never calls LLM
+## Hard rules
 
-You generate all documents. Use **scan_codebase** / **find_context** for repo context.
+1. After `write_spec_document` → show **full** `documentContent` → **STOP**
+2. Never call `update_spec` without `userConfirmed: true`
+3. Gap analysis must cite **real files** from scan + steering — no invented modules
+4. Implement only under paths from `steering/structure.md`
+5. Tasks are small, file-scoped, checkboxed `- [ ]` / `- [x]`
+
+## Reply map
+
+| User says | You do |
+|-----------|--------|
+| approve | `update_spec { userConfirmed: true, decision: "approve" }` |
+| request changes | revise → `write_spec_document` → ask again |
+| reject | stop |
 
 ## Full reference
 
-See `.cursor/rules/specdrive-cheatsheet.mdc` in this project.
+See `.cursor/rules/specdrive-cheatsheet.mdc`

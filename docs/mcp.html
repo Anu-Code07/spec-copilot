@@ -146,16 +146,26 @@ npx -y @specdrive/mcp setup --stack flutter</code></pre>
       </section>
 
       <section>
-        <h2>MCP workflow</h2>
-        <div class="workflow"><span class="step">create_spec</span>           → requirements bundle
-<span class="step">write_spec_document</span>  → save requirements.md
-<span class="step">update_spec</span>            → approve requirements
-<span class="step">generate_gap_analysis</span> → gap-analysis bundle
-<span class="step">write_spec_document</span>  → save gap-analysis.md
-<span class="step">generate_design</span>        → design bundle
-<span class="step">write_spec_document</span>  → save design.md
-<span class="step">generate_tasks</span>         → tasks bundle
-<span class="step">get_next_task</span>          → implement</div>
+        <h2>MCP workflow (Kiro-style)</h2>
+        <div class="callout">
+          <div class="callout-title">Human gates — never auto-approve</div>
+          <p>
+            After every <code>write_spec_document</code>, the host AI must show you the full document and
+            <strong>STOP</strong>. Only call <code>update_spec</code> with
+            <code>userConfirmed: true</code> after you reply approve / request changes / reject.
+          </p>
+        </div>
+        <div class="workflow"><span class="step">create_spec</span>           → YOUR JOURNEY + brief bundle
+<span class="step">write_spec_document</span>  → brief.md → STOP → you approve
+<span class="step">write_spec_document</span>  → requirements.md → STOP → approve
+<span class="step">generate_gap_analysis</span> → write → STOP → approve
+<span class="step">generate_design_hld</span>   → write → STOP → approve
+<span class="step">generate_design_lld</span>   → write → STOP → approve
+<span class="step">generate_tasks</span>         → write → STOP → approve
+<span class="step">generate_maestro</span>       → optional UI E2E map
+<span class="step">get_next_task</span>          → when ready_for_implementation=true
+<span class="step">review_code</span>            → validate</div>
+        <p>Works in <strong>any repo</strong> — edit <code>.specdrive/steering/</code> so paths match your packages.</p>
       </section>
 
       <section id="figma">
@@ -217,20 +227,24 @@ spec implement --spec my-feature --next --figma-skip</code></pre>
             <tr><th>Tool</th><th>Description</th></tr>
           </thead>
           <tbody>
-            <tr><td><code>create_spec</code></td><td>Scaffold spec + return generation bundle</td></tr>
-            <tr><td><code>write_spec_document</code></td><td>Save host-generated markdown</td></tr>
-            <tr><td><code>update_spec</code></td><td>Approve workflow gate</td></tr>
-            <tr><td><code>generate_gap_analysis</code></td><td>Gap-analysis generation bundle</td></tr>
-            <tr><td><code>generate_design</code></td><td>Design generation bundle</td></tr>
-            <tr><td><code>generate_tasks</code></td><td>Tasks generation bundle</td></tr>
+            <tr><td><code>create_spec</code></td><td>Scaffold dated feature folder + YOUR JOURNEY + brief bundle</td></tr>
+            <tr><td><code>write_spec_document</code></td><td>Save host-generated markdown; returns documentContent + approval brief</td></tr>
+            <tr><td><code>request_gate_approval</code></td><td>Build approval brief — show to human and STOP</td></tr>
+            <tr><td><code>update_spec</code></td><td>Human gate decision (<code>userConfirmed: true</code> required)</td></tr>
+            <tr><td><code>generate_gap_analysis</code></td><td>Gap-analysis bundle (cite real files)</td></tr>
+            <tr><td><code>generate_design_hld</code></td><td>High-level design bundle</td></tr>
+            <tr><td><code>generate_design_lld</code></td><td>Low-level design bundle</td></tr>
+            <tr><td><code>generate_tasks</code></td><td>Checkbox task list bundle</td></tr>
+            <tr><td><code>generate_maestro</code></td><td>Optional E2E semantics map</td></tr>
             <tr><td><code>scan_codebase</code></td><td>Scan repo for source context</td></tr>
-            <tr><td><code>get_next_task</code></td><td>Implementation context; UI → Cursor/Claude by default; optional Figma/Design2Code</td></tr>
+            <tr><td><code>get_next_task</code></td><td>Impl context when ready_for_implementation; UI → host AI by default</td></tr>
+            <tr><td><code>get_spec_status</code></td><td>Phase, gates, ready flag + phase cheat sheet</td></tr>
             <tr><td><code>figma_status</code></td><td>Check Design2Code + FIGMA_TOKEN setup</td></tr>
-            <tr><td><code>figma_import</code></td><td>Import Figma/MCP Figma file to Design AST</td></tr>
+            <tr><td><code>figma_import</code></td><td>Import Figma file to Design AST</td></tr>
             <tr><td><code>figma_generate</code></td><td>Generate code from Figma/AST</td></tr>
             <tr><td><code>figma_generate_for_spec</code></td><td>Generate using spec stack + Figma</td></tr>
             <tr><td><code>figma_preview</code></td><td>Preview generated code (no writes)</td></tr>
-            <tr><td><code>review_code</code></td><td>Review against design.md</td></tr>
+            <tr><td><code>review_code</code></td><td>Review against HLD/LLD + requirements</td></tr>
             <tr><td><code>search_specs</code></td><td>List all specs</td></tr>
           </tbody>
         </table>

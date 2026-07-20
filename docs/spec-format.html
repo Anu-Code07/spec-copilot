@@ -40,34 +40,46 @@
     <div class="container">
       <header class="page-header">
         <h1>Spec format</h1>
-        <p>Four linked documents per feature, plus metadata and steering files.</p>
+        <p>Kiro-style artifacts per feature: brief → requirements → gap → HLD → LLD → tasks (+ optional maestro), tracked by <code>spec.json</code>.</p>
       </header>
 
       <section>
         <h2>Directory structure</h2>
         <pre><code>.specdrive/
 ├── config.yaml
-├── product.md              # Product steering
-├── tech-stack.md           # Stack (flutter | nextjs | react-native)
-├── structure.md            # Folder architecture
-├── coding-style.md         # Conventions
+├── steering/                 # source of truth for YOUR repo
+│   ├── product.md
+│   ├── tech.md
+│   ├── structure.md          # real package paths — edit me
+│   ├── coding-style.md
+│   └── verticals/            # optional domain notes
 └── specs/
-    └── {feature-slug}/
-        ├── meta.yaml       # Gates, phase, IDs
-        ├── requirements.md
-        ├── gap-analysis.md
-        ├── design.md
-        └── tasks.md</code></pre>
+    ├── features/YYYY-MM-DD[-TICKET]-&lt;slug&gt;/
+    │   ├── spec.json         # phase, approvals, ready_for_implementation
+    │   ├── brief.md
+    │   ├── requirements.md
+    │   ├── gap-analysis.md
+    │   ├── design-hld.md
+    │   ├── design-lld.md
+    │   ├── decisions.md      # optional ADRs
+    │   ├── tasks.md          # checkbox tasks [ ] / [x]
+    │   ├── maestro.md        # optional UI E2E map
+    │   └── impl-validation.md
+    ├── bugs/…
+    └── tech-debt/…</code></pre>
       </section>
 
       <section>
-        <h2>Gate order</h2>
-        <div class="workflow"><span class="step">requirements</span>  → approve →
+        <h2>Gate order (YOUR JOURNEY)</h2>
+        <div class="workflow"><span class="step">brief</span> → approve →
+<span class="step">requirements</span> → approve →
 <span class="step">gap_analysis</span> → approve →
-<span class="step">design</span>       → approve →
-<span class="step">tasks</span>        → approve →
-implementing</div>
-        <p>Tracked in <code>meta.yaml</code> under <code>gates:</code> with status, timestamp, and approver.</p>
+<span class="step">design_hld</span> → approve →
+<span class="step">design_lld</span> → approve →
+<span class="step">tasks</span> → approve →
+<span class="step">maestro</span> (optional) →
+ready_for_implementation → implement → validate</div>
+        <p>Tracked in <code>spec.json</code>: each gate has <code>generated</code> + <code>approved</code>. Implement unlocks only when <code>ready_for_implementation: true</code>.</p>
       </section>
 
       <section>
@@ -83,60 +95,63 @@ implementing</div>
       </section>
 
       <section>
+        <h2>brief.md</h2>
+        <p><strong>Kickoff.</strong> Problem, goals, scope in/out, approach, open questions. Human-approved first.</p>
+      </section>
+
+      <section>
         <h2>gap-analysis.md</h2>
-        <p><strong>Phase 2 — codebase gaps.</strong> Compare requirements to what already exists in the repo.</p>
+        <p><strong>Codebase gaps.</strong> Compare requirements to what already exists — cite <strong>real file paths</strong> from the scan + steering. No invented modules.</p>
         <ul>
-          <li>Existing code inventory (screens, routes, components)</li>
+          <li>Existing code inventory</li>
           <li>Requirements coverage matrix</li>
-          <li>Gaps to bridge before implementation</li>
-          <li>Files to create / modify</li>
+          <li>Gaps / files to create or modify</li>
           <li>Recommended implementation order</li>
         </ul>
       </section>
 
       <section>
-        <h2>design.md</h2>
-        <p><strong>Phase 3 — UI/UX HOW.</strong> The primary frontend design artifact.</p>
+        <h2>design-hld.md + design-lld.md</h2>
+        <p><strong>HOW — split like Kiro.</strong></p>
         <ul>
-          <li>User flow and screen map</li>
-          <li>Component hierarchy and specifications</li>
-          <li>Navigation table</li>
-          <li>State management (BLoC, Zustand, etc.)</li>
-          <li>Design tokens and platform behavior</li>
-          <li>Accessibility requirements</li>
-          <li>Requirement traceability (REQ → design elements)</li>
+          <li><strong>HLD:</strong> architecture overview, flows, screen/module map</li>
+          <li><strong>LLD:</strong> concrete classes/files, interfaces, state machines, a11y/semantics</li>
+          <li>Both must follow <code>steering/structure.md</code> package paths</li>
         </ul>
       </section>
 
       <section>
         <h2>tasks.md</h2>
-        <p><strong>Phase 4 — implementation plan.</strong> Sequenced frontend tasks.</p>
+        <p><strong>Implementation plan.</strong> Small, file-scoped checkbox tasks.</p>
         <ul>
           <li>Waves of tasks (<code>TASK-001</code>, …)</li>
-          <li>Status, requirements refs, design refs</li>
-          <li>Files to touch, acceptance criteria</li>
-          <li>Dependencies between tasks</li>
+          <li>Markdown checkboxes <code>- [ ]</code> / <code>- [x]</code></li>
+          <li>Real file paths from LLD / gap analysis</li>
+          <li>Status, requirements refs, dependencies</li>
         </ul>
       </section>
 
       <section>
-        <h2>meta.yaml example</h2>
-        <pre><code>specdriveVersion: "1.0"
-id: SPEC-001
-slug: product-review
-title: Product Review Screen
-type: feature
-stack: flutter
-phase: design
-gates:
-  requirements:
-    status: approved
-  gap_analysis:
-    status: approved
-  design:
-    status: pending
-  tasks:
-    status: pending</code></pre>
+        <h2>spec.json example</h2>
+        <pre><code>{
+  "specdriveVersion": "1.0",
+  "id": "SPEC-001",
+  "slug": "product-review",
+  "folderName": "2026-07-20-product-review",
+  "title": "Product Review Screen",
+  "type": "feature",
+  "stack": "flutter",
+  "phase": "design_hld",
+  "ready_for_implementation": false,
+  "gates": {
+    "brief": { "status": "approved", "generated": true, "approved": true },
+    "requirements": { "status": "approved", "generated": true, "approved": true },
+    "gap_analysis": { "status": "approved", "generated": true, "approved": true },
+    "design_hld": { "status": "pending", "generated": true, "approved": false },
+    "design_lld": { "status": "pending", "generated": false, "approved": false },
+    "tasks": { "status": "pending", "generated": false, "approved": false }
+  }
+}</code></pre>
       </section>
 
       <section>

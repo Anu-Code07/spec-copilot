@@ -80,8 +80,8 @@
           </div>
           <div class="card">
             <div class="card-icon">🎨</div>
-            <h3>design.md drives UI</h3>
-            <p>Screens, components, flows, state, and a11y in one UI blueprint.</p>
+            <h3>HLD + LLD drive UI</h3>
+            <p>Architecture overview + concrete files/classes — then checkbox tasks. Human approves every gate.</p>
           </div>
           <div class="card">
             <div class="card-icon">🤖</div>
@@ -93,15 +93,19 @@
 
       <section class="reveal" id="workflow">
         <p class="section-label">Workflow</p>
-        <h2>Four docs, one pipeline</h2>
+        <h2>Kiro-style pipeline</h2>
         <div class="pipeline">
-          <span class="pipeline-step"><span class="file">requirements.md</span> <span class="gate">✓</span></span>
+          <span class="pipeline-step"><span class="file">brief</span> <span class="gate">✓</span></span>
           <span class="pipeline-arrow">→</span>
-          <span class="pipeline-step"><span class="file">gap-analysis.md</span> <span class="gate">✓</span></span>
+          <span class="pipeline-step"><span class="file">requirements</span> <span class="gate">✓</span></span>
           <span class="pipeline-arrow">→</span>
-          <span class="pipeline-step"><span class="file">design.md</span> <span class="gate">✓</span></span>
+          <span class="pipeline-step"><span class="file">gap</span> <span class="gate">✓</span></span>
           <span class="pipeline-arrow">→</span>
-          <span class="pipeline-step"><span class="file">tasks.md</span> <span class="gate">✓</span></span>
+          <span class="pipeline-step"><span class="file">HLD</span> <span class="gate">✓</span></span>
+          <span class="pipeline-arrow">→</span>
+          <span class="pipeline-step"><span class="file">LLD</span> <span class="gate">✓</span></span>
+          <span class="pipeline-arrow">→</span>
+          <span class="pipeline-step"><span class="file">tasks</span> <span class="gate">✓</span></span>
           <span class="pipeline-arrow">→</span>
           <span class="pipeline-step">Implement</span>
         </div>
