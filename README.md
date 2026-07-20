@@ -128,7 +128,7 @@ SpecDrive is ready for **real project use** when built from source. npm publish 
 | Release checklist | ✅ `pnpm release-check` |
 | MCP + CLI + review engine | ✅ |
 | Known limitations documented | ✅ [KNOWN-LIMITATIONS.md](docs/KNOWN-LIMITATIONS.md) |
-| npm publish | ✅ `@specdrive/*@0.1.4` |
+| npm publish | ✅ `@specdrive/*@0.1.5` |
 
 ```bash
 # Verify before release

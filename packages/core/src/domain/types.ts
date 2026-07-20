@@ -1,5 +1,8 @@
 export const SPECDRIVE_VERSION = '1.0.0';
 
+/** npm package version — keep in sync with packages package.json files on release */
+export const SPECDRIVE_PACKAGE_VERSION = '0.1.5';
+
 export type FrontendStack = 'flutter' | 'nextjs' | 'react-native';
 
 export type SpecType = 'feature' | 'bugfix';

@@ -1,11 +1,12 @@
 {
   "name": "@specdrive/cli",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "SpecDrive CLI — frontend spec-driven development",
   "license": "MIT",
   "type": "module",
   "bin": {
-    "spec": "./bin/spec.js"
+    "spec": "./bin/spec.js",
+    "specdrive": "./bin/spec.js"
   },
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",

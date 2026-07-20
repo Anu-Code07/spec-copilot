@@ -83,6 +83,7 @@ export type {
 } from './ai/index.js';
 
 export { SPECDRIVE_VERSION } from './domain/types.js';
+export { SPECDRIVE_PACKAGE_VERSION } from './domain/types.js';
 
 export {
   stackToFramework,
