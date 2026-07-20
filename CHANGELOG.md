@@ -4,6 +4,32 @@ All notable changes to SpecDrive are documented here.
 
 Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.1.4] - 2026-07-20
+
+### Changed
+
+- UI tasks (widget/screen/layout) default to **Cursor/Claude** implementation; Design2Code is optional when a Figma token is provided
+
+## [0.1.3] - 2026-07-20
+
+### Added
+
+- `spec setup mcp` — universal MCP setup for Cursor, Claude Desktop, Windsurf, Cline, and any MCP client
+- `nextSteps` guidance on MCP tool responses and CLI implement output
+- Figma token prompt at `get_next_task` time (`figmaAction`: prompt / use / skip)
+- MCP ↔ CLI command mapping in docs (MCP-first getting started)
+
+### Changed
+
+- Docs emphasize MCP-first install; CLI remains optional (free LLM)
+- `npx -y @specdrive/mcp` TTY message clarifies that waiting means installed (stdio)
+
+## [0.1.2] - 2026-07-04
+
+### Fixed
+
+- Package publish alignment for `@specdrive/*` 0.1.2
+
 ## [0.1.1] - 2026-07-04
 
 ### Fixed

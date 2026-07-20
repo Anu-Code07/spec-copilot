@@ -190,31 +190,30 @@ export function stepsAfterGetNextTask(params: {
   if (params.figmaPromptNeeded) {
     steps.push({
       action:
-        'Ask the user: provide a Figma Personal Access Token (figd_...) for Design2Code UI generation, or skip',
-      reason: 'UI task — Design2Code can scaffold widgets; logic stays with host AI',
+        'Ask the user: (A) provide Figma token for optional Design2Code scaffold, or (B) skip — Cursor/Claude implements the UI from design.md',
+      reason: 'UI task — host AI owns UI by default; Design2Code is optional',
     });
     steps.push({
       action: `Retry get_next_task { slug: "${params.slug}", figmaToken: "figd_...", figmaAction: "use" }`,
-      reason: 'If user provides token',
+      reason: 'Optional — Design2Code scaffolds widgets/screens from Figma',
+      optional: true,
     });
     steps.push({
-      action: `Retry get_next_task { slug: "${params.slug}", figmaAction: "skip" }`,
-      reason: 'If user skips Figma — implement UI manually with spec context',
-      optional: true,
+      action: `Retry get_next_task { slug: "${params.slug}", figmaAction: "skip" } then implement UI with Cursor/Claude using design.md`,
+      reason: 'Recommended default — host AI builds screens, widgets, layout',
     });
     return steps;
   }
 
   if (params.design2codeSkipped && params.skipReason) {
     steps.push({
-      action: 'Implement this task using host AI (Cursor/Claude) and the returned spec context',
-      reason: `Design2Code skipped: ${params.skipReason}`,
+      action: 'Implement this UI/logic task with Cursor/Claude using the returned spec context (design.md + requirements)',
+      reason: `Design2Code not used: ${params.skipReason}`,
     });
   } else {
     steps.push({
-      action: 'Implement remaining logic (state, BLoC, navigation, validation, tests) with host AI',
-      reason: 'Design2Code handles UI layout only when it ran successfully',
-      optional: true,
+      action: 'Cursor/Claude: implement remaining work (UI polish if needed, plus state, BLoC, navigation, validation, tests)',
+      reason: 'Design2Code only scaffolds UI layout when it ran; host AI finishes everything else',
     });
   }
 

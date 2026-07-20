@@ -99,8 +99,8 @@ importers:
   packages/plugins/flutter:
     dependencies:
       '@specdrive/core':
-        specifier: workspace:*
-        version: link:../../core
+        specifier: ^0.1.3
+        version: 0.1.3
     devDependencies:
       typescript:
         specifier: ^5.7.2
@@ -109,8 +109,8 @@ importers:
   packages/plugins/nextjs:
     dependencies:
       '@specdrive/core':
-        specifier: workspace:*
-        version: link:../../core
+        specifier: ^0.1.3
+        version: 0.1.3
     devDependencies:
       typescript:
         specifier: ^5.7.2
@@ -119,8 +119,8 @@ importers:
   packages/plugins/react-native:
     dependencies:
       '@specdrive/core':
-        specifier: workspace:*
-        version: link:../../core
+        specifier: ^0.1.3
+        version: 0.1.3
     devDependencies:
       typescript:
         specifier: ^5.7.2
@@ -642,6 +642,12 @@ packages:
     resolution: {integrity: sha512-BfzEnDJOt9T8M989/lA37EcJgat01wLRnoi5dQf3QzOH7jzpqTAzdDbVfRljVr5r+jzKqpbHeyOfAaXxAd0PAA==}
     cpu: [x64]
     os: [win32]
+
+  '@specdrive/core@0.1.3':
+    resolution: {integrity: sha512-bt06ZQMonZyl/1RcEMgswrF7I9b5dYJ8BZYKbTYEy6vIOgtXlR6ZcXDJrSxbwyfekx+KYZhFLUMO+dyr5flPLQ==}
+
+  '@specdrive/review-engine@0.1.3':
+    resolution: {integrity: sha512-LMa7wOOF4U75Msxkt7nbrx1oriG3f6SmFu1zJLKXk+Ai/oHF5zPbB1/e4sM7UHr/NvBU1BzzM78FKElNGHC4CA==}
 
   '@turbo/darwin-64@2.10.2':
     resolution: {integrity: sha512-wBM3ObqOWnKUDmg7QfUFDkDHPFUAJmrYlYqmEM8jMPAPA/I6wRJIbWimeQUqhOiQ8xPKhzyWM+xaiUP0wz8FEQ==}
@@ -1962,6 +1968,16 @@ snapshots:
 
   '@rollup/rollup-win32-x64-msvc@4.62.2':
     optional: true
+
+  '@specdrive/core@0.1.3':
+    dependencies:
+      '@specdrive/review-engine': 0.1.3
+      ajv: 8.20.0
+      gray-matter: 4.0.3
+      yaml: 2.9.0
+      zod: 3.25.76
+
+  '@specdrive/review-engine@0.1.3': {}
 
   '@turbo/darwin-64@2.10.2':
     optional: true

@@ -91,13 +91,14 @@ Every major tool response includes **`nextSteps`** — what to run next or skip.
 
 ## UI tasks + Design2Code
 
-`get_next_task` on UI tasks:
+`get_next_task` on UI tasks (screens, widgets, layout):
 
-1. **Asks user** for Figma Personal Access Token (`figd_...`) **or skip**
-2. **Provide token** → `get_next_task { figmaToken: "...", figmaAction: "use" }` → Design2Code scaffolds UI
-3. **Skip** → `get_next_task { figmaAction: "skip" }` → implement with host AI
+1. **Default — ask Cursor/Claude** to implement the UI from `design.md`
+2. **Optional** — user can provide a Figma token for Design2Code scaffold:
+   - `get_next_task { figmaToken: "...", figmaAction: "use" }`
+3. **Skip Figma** — `get_next_task { figmaAction: "skip" }` → host AI builds the UI
 
-Logic tasks (BLoC, state, navigation, validation, tests) always use host AI context — never Design2Code.
+Logic tasks (BLoC, state, navigation, validation, tests) always use host AI — never Design2Code.
 
 ## Available tools
 

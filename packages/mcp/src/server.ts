@@ -213,20 +213,20 @@ export async function createMcpServer(): Promise<Server> {
       {
         name: 'get_next_task',
         description:
-          'Get implementation context for the next pending task. UI tasks prompt for Figma token (provide or skip). Design2Code handles UI only; state/BLoC/navigation/tests stay with host AI.',
+          'Get implementation context for the next pending task. UI tasks: Cursor/Claude implements by default; optionally prompt for Figma token (Design2Code). State/BLoC/navigation/tests always stay with host AI.',
         inputSchema: {
           type: 'object',
           properties: {
             slug: { type: 'string' },
             autoFigma: {
               type: 'boolean',
-              description: 'Attempt Design2Code for UI tasks (default true). Set false to skip Figma flow.',
+              description: 'Offer optional Design2Code for UI tasks (default true). Host AI still owns UI unless user provides a token.',
             },
             figmaAction: {
               type: 'string',
               enum: ['prompt', 'use', 'skip'],
               description:
-                'prompt: ask user for token if missing (default). use: run Design2Code with figmaToken. skip: implement with host AI only.',
+                'prompt: ask user (default) — skip = Cursor/Claude implements UI; use = run Design2Code with figmaToken.',
             },
             figmaFileKey: { type: 'string', description: 'Figma file key or URL (or .specdrive/figma.json)' },
             figmaToken: { type: 'string', description: 'Figma Personal Access Token (figd_...) when user provides it' },

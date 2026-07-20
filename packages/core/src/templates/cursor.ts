@@ -141,7 +141,7 @@ No args. Lists all specs.
 \`\`\`json
 { "slug": "string?", "autoFigma": true, "figmaAction": "prompt"|"use"|"skip", "figmaToken": "string?", "figmaFileKey": "string?" }
 \`\`\`
-On UI tasks: **ask user** for Figma token or skip. Retry with \`figmaToken\` + \`figmaAction: "use"\` or \`figmaAction: "skip"\`.
+On UI tasks: **Cursor/Claude implements UI by default**. Optionally ask user for Figma token (\`figmaAction: "use"\`) or skip (\`figmaAction: "skip"\`).
 Logic tasks (BLoC, nav, tests) always use host AI — never Design2Code.
 
 ### complete_task
@@ -239,8 +239,8 @@ phase: requirements
 
 | Task mentions | Routed to |
 |---------------|-----------|
-| UI, widget, component, screen, layout, button | Design2Code (if \`autoFigma: true\`) |
-| bloc, cubit, navigation, api, repository, test | Host AI (Cursor) with spec context |
+| UI, widget, component, screen, layout, button | **Cursor/Claude** (default). Optional Design2Code if user provides Figma token |
+| bloc, cubit, navigation, api, repository, test | Host AI (Cursor/Claude) with spec context |
 
 ---
 
