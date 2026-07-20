@@ -15,3 +15,5 @@ export const DESIGN_SECTIONS = [
   'Accessibility',
   'Requirement Traceability',
 ] as const;
+
+export const STRUCTURE_TEMPLATE = 'src/features/{feature}/screens|components|hooks|domain|data';

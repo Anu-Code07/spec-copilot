@@ -55,11 +55,22 @@ const SECTION_SCHEMAS: Record<SpecDocument, string[]> = {
 };
 
 function buildSystemPrompt(stack: FrontendStack, document: SpecDocument): string {
+  const stackRules: Record<FrontendStack, string> = {
+    flutter:
+      'Flutter: Clean Architecture (data/domain/presentation) + BLoC with sealed states. Widgets are dumb. UseCases call abstract repositories. Tag UI vs logic tasks clearly.',
+    nextjs:
+      'Next.js App Router: Server Components by default; feature modules with domain/data separation; no DTOs in UI; thin page.tsx files.',
+    'react-native':
+      'React Native: feature modules; screens compose hooks/stores; discrete status unions; FlatList for lists; domain has no RN imports.',
+  };
+
   return `You are SpecDrive, a frontend spec-driven development assistant for ${stack}.
 You are running inside Cursor/Claude via MCP. Use YOUR host API to generate high-quality Markdown.
 Output ONLY the Markdown document body — no preamble, no wrapping code fences around the entire doc.
 The document type is: ${document}. Follow the required sections exactly.
 Focus on UI/UX for frontend — screens, components, navigation, state, accessibility.
+Obey .specdrive/coding-style.md and structure.md for this stack.
+Stack rules: ${stackRules[stack]}
 Analyze the provided codebase context to make docs specific to THIS repository.`;
 }
 
@@ -86,10 +97,13 @@ Identify precisely what exists vs what's missing. List every gap that must be br
 Be specific: name files, components, routes, state providers that exist or need creation.`,
     design: `Generate design.md UI/UX blueprint for "${title}".
 Use requirements AND gap-analysis to design only what is needed.
-Reference existing components from codebase where they can be reused.`,
+Reference existing components from codebase where they can be reused.
+Include architecture notes that match coding-style.md (layers, state management, a11y).`,
     tasks: `Generate tasks.md with sequenced implementation tasks (TASK-001...).
 Tasks must address each gap from gap-analysis and satisfy requirements.
-Group into waves with dependencies.`,
+Group into waves with dependencies.
+Tag UI tasks (widget/screen/layout) vs logic tasks (bloc/state/navigation/validation/tests) in titles so SpecDrive can route correctly.
+Follow coding-style.md: no business logic in widgets; BLoC/hooks own state; one use case per operation.`,
     bugfix: `Generate bugfix.md for "${title}".`,
   };
 
