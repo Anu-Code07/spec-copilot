@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="SpecDrive — modern frontend spec-driven development for Flutter, Next.js, and React Native.">
+  <meta name="author" content="Anu Code07">
+  <meta name="creator" content="Anu Code07">
+  <title>SpecDrive — Frontend Spec-Driven Development</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="bg-mesh" aria-hidden="true"></div>
+  <div class="bg-grid" aria-hidden="true"></div>
+
+  <header class="site-header">
+    <nav class="nav-inner">
+      <a class="brand" href="index.html">
+        <span class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none"><path d="M6 7h12M6 12h9M6 17h11" stroke="white" stroke-width="2" stroke-linecap="round"/></svg>
+        </span>
+        SpecDrive
+      </a>
+      <div class="nav-right">
+        <ul class="nav-links">
+          <li><a href="index.html">Home</a></li>
+          <li><a href="getting-started.html">Get started</a></li>
+          <li><a href="cli.html">CLI</a></li>
+          <li><a href="mcp.html">MCP</a></li>
+          <li><a href="coding-standards.html">Coding standards</a></li>
+          <li><a href="spec-format.html">Spec format</a></li>
+          <li><a href="https://github.com/Anu-Code07/spec-copilot" target="_blank" rel="noopener">GitHub</a></li>
+          <li><a href="getting-started.html" class="nav-cta">Quick start →</a></li>
+        </ul>
+        <button class="theme-toggle" type="button" aria-label="Toggle theme">☀️</button>
+        <button class="menu-btn" type="button" aria-label="Menu">☰</button>
+      </div>
+    </nav>
+  </header>
+
+  <main>
+    <div class="container">
+      <section class="hero">
+        <div class="hero-badge"><span class="pulse"></span> Open source · MIT</div>
+        <h1><span class="gradient-text">Frontend spec-driven</span><br>development, done right</h1>
+        <p class="lead">
+          Kiro-style specs for Flutter, Next.js, and React Native —
+          from requirements and gap analysis to UI design and implementation tasks.
+        </p>
+        <div class="hero-actions">
+          <a class="btn btn-primary" href="getting-started.html">Get started</a>
+          <a class="btn btn-secondary" href="https://github.com/Anu-Code07/spec-copilot">View on GitHub</a>
+        </div>
+        <div class="stack-pills">
+          <span class="pill">Flutter</span>
+          <span class="pill">Next.js</span>
+          <span class="pill">React Native</span>
+          <span class="pill">Cursor MCP</span>
+          <span class="pill">Claude Desktop</span>
+        </div>
+      </section>
+
+      <section class="reveal">
+        <p class="section-label">Why SpecDrive</p>
+        <h2>Structure for frontend teams</h2>
+        <p>Backend has OpenAPI and Spec Kit. Frontend needs specs focused on screens, components, navigation, and accessibility.</p>
+        <div class="grid">
+          <div class="card">
+            <div class="card-icon">📋</div>
+            <h3>Kiro-style gates</h3>
+            <p>Approve requirements, gap-analysis, design, and tasks before writing code.</p>
+          </div>
+          <div class="card">
+            <div class="card-icon">🔍</div>
+            <h3>Gap analysis</h3>
+            <p>Compare requirements against your codebase — know what's missing before design.</p>
+          </div>
+          <div class="card">
+            <div class="card-icon">🎨</div>
+            <h3>HLD + LLD drive UI</h3>
+            <p>Architecture overview + concrete files/classes — then checkbox tasks. Human approves every gate.</p>
+          </div>
+          <div class="card">
+            <div class="card-icon">🤖</div>
+            <h3>AI-agnostic</h3>
+            <p>Free LLM in CLI, or MCP in Cursor/Claude using your host AI keys.</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="reveal" id="workflow">
+        <p class="section-label">Workflow</p>
+        <h2>Kiro-style pipeline</h2>
+        <div class="pipeline">
+          <span class="pipeline-step"><span class="file">brief</span> <span class="gate">✓</span></span>
+          <span class="pipeline-arrow">→</span>
+          <span class="pipeline-step"><span class="file">requirements</span> <span class="gate">✓</span></span>
+          <span class="pipeline-arrow">→</span>
+          <span class="pipeline-step"><span class="file">gap</span> <span class="gate">✓</span></span>
+          <span class="pipeline-arrow">→</span>
+          <span class="pipeline-step"><span class="file">HLD</span> <span class="gate">✓</span></span>
+          <span class="pipeline-arrow">→</span>
+          <span class="pipeline-step"><span class="file">LLD</span> <span class="gate">✓</span></span>
+          <span class="pipeline-arrow">→</span>
+          <span class="pipeline-step"><span class="file">tasks</span> <span class="gate">✓</span></span>
+          <span class="pipeline-arrow">→</span>
+          <span class="pipeline-step">Implement</span>
+        </div>
+      </section>
+
+      <section class="reveal">
+        <p class="section-label">Quick start</p>
+        <h2>Install in seconds</h2>
+        <div class="code-block">
+          <div class="code-header">
+            <div class="code-dots"><span></span><span></span><span></span></div>
+            <span>terminal</span>
+            <button class="copy-btn" type="button">Copy</button>
+          </div>
+          <pre><code>npm install -g @specdrive/cli
+spec init --stack flutter
+spec create "Product Review Screen"
+export GEMINI_API_KEY="your-key"
+spec gap-analysis --spec product-review-screen</code></pre>
+        </div>
+      </section>
+
+      <section class="reveal">
+        <p class="section-label">Modes</p>
+        <h2>CLI vs MCP</h2>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr><th>Mode</th><th>Generates docs</th><th>API keys</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>CLI / npm</strong></td>
+                <td>SpecDrive free LLM chain</td>
+                <td><code>GEMINI_API_KEY</code>, Groq, or Ollama</td>
+              </tr>
+              <tr>
+                <td><strong>MCP</strong></td>
+                <td>Host AI (Cursor / Claude)</td>
+                <td>Your editor's key — SpecDrive never calls LLM</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p><a href="mcp.html">MCP setup guide →</a></p>
+      </section>
+
+      <section class="reveal">
+        <p class="section-label">Explore</p>
+        <h2>Documentation</h2>
+        <div class="grid">
+          <a class="card card-link" href="getting-started.html">
+            <div class="card-icon">🚀</div>
+            <h3>Getting started</h3>
+            <p>Install, init, and run your first spec workflow.</p>
+          </a>
+          <a class="card card-link" href="cli.html">
+            <div class="card-icon">⌨️</div>
+            <h3>CLI reference</h3>
+            <p>All spec commands and environment variables.</p>
+          </a>
+          <a class="card card-link" href="mcp.html">
+            <div class="card-icon">🔌</div>
+            <h3>MCP setup</h3>
+            <p>Cursor, Claude Desktop, and npm install.</p>
+          </a>
+          <a class="card card-link" href="spec-format.html">
+            <div class="card-icon">📄</div>
+            <h3>Spec format</h3>
+            <p>requirements, gap-analysis, design, tasks templates.</p>
+          </a>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="footer-links">
+      <a href="https://github.com/Anu-Code07/spec-copilot">GitHub</a>
+      <a href="https://github.com/Anu-Code07/spec-copilot/blob/main/LICENSE">MIT License</a>
+      <a href="https://github.com/Anu-Code07/spec-copilot/issues">Issues</a>
+    </div>
+    <p>SpecDrive — frontend spec-driven development</p>
+    <p class="footer-credit">Created by <a href="https://github.com/Anu-Code07" target="_blank" rel="noopener">Anu Code07</a></p>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>

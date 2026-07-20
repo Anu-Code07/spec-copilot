@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Get started with SpecDrive — MCP-first setup, then optional CLI.">
+  <meta name="author" content="Anu Code07">
+  <meta name="creator" content="Anu Code07">
+  <title>Getting started — SpecDrive</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="bg-mesh" aria-hidden="true"></div>
+  <div class="bg-grid" aria-hidden="true"></div>
+
+  <header class="site-header">
+    <nav class="nav-inner">
+      <a class="brand" href="index.html">
+        <span class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none"><path d="M6 7h12M6 12h9M6 17h11" stroke="white" stroke-width="2" stroke-linecap="round"/></svg>
+        </span>
+        SpecDrive
+      </a>
+      <div class="nav-right">
+        <ul class="nav-links">
+          <li><a href="index.html">Home</a></li>
+          <li><a href="getting-started.html">Get started</a></li>
+          <li><a href="cli.html">CLI</a></li>
+          <li><a href="mcp.html">MCP</a></li>
+          <li><a href="coding-standards.html">Coding standards</a></li>
+          <li><a href="spec-format.html">Spec format</a></li>
+          <li><a href="https://github.com/Anu-Code07/spec-copilot" target="_blank" rel="noopener">GitHub</a></li>
+          <li><a href="getting-started.html" class="nav-cta">Quick start →</a></li>
+        </ul>
+        <button class="theme-toggle" type="button" aria-label="Toggle theme">☀️</button>
+        <button class="menu-btn" type="button" aria-label="Menu">☰</button>
+      </div>
+    </nav>
+  </header>
+
+  <main>
+    <div class="doc-layout">
+      <aside class="sidebar reveal">
+        <p class="sidebar-title">Documentation</p>
+        <nav>
+          <a href="getting-started.html">Getting started</a>
+          <a href="mcp.html">MCP setup</a>
+          <a href="cli.html">CLI reference</a>
+          <a href="coding-standards.html">Coding standards</a>
+          <a href="spec-format.html">Spec format</a>
+        </nav>
+      </aside>
+
+      <article>
+        <header class="page-header reveal">
+          <p class="section-label">Guide</p>
+          <h1>Getting started</h1>
+          <p>MCP-first frontend spec workflow — use Cursor, Claude, or any MCP client. CLI is optional.</p>
+        </header>
+
+        <section class="reveal" id="prerequisites">
+          <h2>Prerequisites</h2>
+          <ul>
+            <li><strong>Node.js 20+</strong></li>
+            <li>Flutter, Next.js, or React Native project</li>
+            <li>An MCP-capable IDE (Cursor, Claude Desktop, Windsurf, Cline, Continue, …)</li>
+            <li><strong>Optional CLI AI:</strong> <code>GEMINI_API_KEY</code> (free tier) or Ollama — only if you use <code>spec</code> commands without MCP</li>
+          </ul>
+        </section>
+
+        <section class="reveal" id="install-mcp">
+          <h2>1. Install &amp; connect MCP (recommended)</h2>
+          <p>One command in your <strong>app project</strong> (not the spec-copilot repo):</p>
+          <div class="code-block">
+            <div class="code-header">
+              <div class="code-dots"><span></span><span></span><span></span></div>
+              <span>terminal</span>
+              <button class="copy-btn" type="button">Copy</button>
+            </div>
+            <pre><code>cd your-flutter-app
+npx -y @specdrive/mcp setup --stack flutter</code></pre>
+          </div>
+          <p>This creates <code>.specdrive/</code>, writes <code>.specdrive/mcp.json</code>, and updates <code>.cursor/mcp.json</code> when present.</p>
+
+          <div class="callout">
+            <div class="callout-title">Ran <code>npx -y @specdrive/mcp</code> and it just waits?</div>
+            <p><strong>That means it is installed.</strong> MCP servers use stdio — they wait for your IDE to connect. You do not run MCP manually in daily use; your IDE starts it from <code>mcp.json</code>.</p>
+          </div>
+
+          <h3>Reload MCP in your IDE</h3>
+          <ul>
+            <li><strong>Cursor / Windsurf:</strong> Settings → MCP → Reload</li>
+            <li><strong>Claude Desktop:</strong> paste config from <code>spec setup mcp</code> output into <code>claude_desktop_config.json</code></li>
+            <li><strong>Other clients:</strong> use <code>.specdrive/mcp.json</code> — same <code>npx -y @specdrive/mcp</code> + project <code>cwd</code></li>
+          </ul>
+          <p>Test in chat: <em>call MCP tool <code>search_specs</code></em> — should return <code>[]</code> or your specs, not <code>NOT_INITIALIZED</code>.</p>
+        </section>
+
+        <section class="reveal" id="workflow-mcp">
+          <h2>2. Create a spec via MCP (Kiro-style)</h2>
+          <p>SpecDrive MCP scans your repo and returns <strong>generation bundles</strong>. Your host AI writes the markdown. <strong>You approve every gate</strong> — never auto-approve.</p>
+          <div class="code-block">
+            <div class="code-header">
+              <div class="code-dots"><span></span><span></span><span></span></div>
+              <span>YOUR JOURNEY</span>
+              <button class="copy-btn" type="button">Copy</button>
+            </div>
+            <pre><code>create_spec { "title": "Product Review Screen", "ticket": "OPTIONAL-123" }
+  → shows YOUR JOURNEY card
+
+1. brief.md → STOP → you approve
+2. requirements.md → STOP → approve
+3. generate_gap_analysis → write → STOP → approve
+4. generate_design_hld → write → STOP → approve
+5. generate_design_lld → write → STOP → approve
+6. generate_tasks → write → STOP → approve   ← last human gate
+7. get_next_task → implement → complete_task
+   (Design2Code only if user wants Figma on a UI task)
+8. review_code</code></pre>
+          </div>
+          <p>Each tool response includes <strong>nextSteps</strong> and a phase <strong>cheat sheet</strong>. Edit <code>.specdrive/steering/*</code> so gap/HLD/LLD target <em>your</em> real package paths.</p>
+        </section>
+
+        <section class="reveal" id="figma">
+          <h2>3. UI tasks + Figma (optional)</h2>
+          <p>On <code>get_next_task</code>, UI tasks go to <strong>Cursor/Claude</strong> by default. Figma is optional:</p>
+          <ul>
+            <li><strong>Skip (default)</strong> → Cursor/Claude implements screens from HLD/LLD + steering</li>
+            <li><strong>Provide Figma token</strong> → Design2Code can scaffold UI first, then host AI finishes</li>
+            <li>State, BLoC, navigation, validation, tests always stay with host AI</li>
+          </ul>
+          <p>See <a href="mcp.html#figma">MCP Figma setup</a>.</p>
+        </section>
+
+        <section class="reveal" id="cli-optional">
+          <h2>4. CLI (optional)</h2>
+          <p>Use CLI when you want SpecDrive to call a free LLM (Gemini/Groq/Ollama) without MCP:</p>
+          <div class="code-block">
+            <div class="code-header">
+              <div class="code-dots"><span></span><span></span><span></span></div>
+              <span>terminal</span>
+              <button class="copy-btn" type="button">Copy</button>
+            </div>
+            <pre><code>export GEMINI_API_KEY="your-key"
+spec init --stack flutter
+spec create "Product Review Screen"
+spec approve requirements --spec product-review-screen
+spec gap-analysis --spec product-review-screen
+# … same gated pipeline as MCP</code></pre>
+          </div>
+          <p>Every CLI command prints suggested next steps. See <a href="cli.html">CLI reference</a> for MCP equivalents.</p>
+        </section>
+
+        <section class="reveal">
+          <h2>Next steps</h2>
+          <ul>
+            <li><a href="mcp.html">Full MCP setup (all IDEs)</a></li>
+            <li><a href="coding-standards.html">Coding standards (Flutter / Next.js / RN)</a></li>
+            <li><a href="cli.html">CLI reference + MCP tool mapping</a></li>
+            <li><a href="spec-format.html">Spec document format</a></li>
+          </ul>
+        </section>
+      </article>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="footer-links">
+      <a href="index.html">Home</a>
+      <a href="https://github.com/Anu-Code07/spec-copilot">GitHub</a>
+    </div>
+    <p>SpecDrive documentation</p>
+    <p class="footer-credit">Created by <a href="https://github.com/Anu-Code07" target="_blank" rel="noopener">Anu Code07</a></p>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>

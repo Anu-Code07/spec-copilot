@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="SpecDrive coding standards for Flutter (Clean Architecture + BLoC), Next.js, and React Native.">
+  <title>Coding standards — SpecDrive</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="bg-mesh" aria-hidden="true"></div>
+  <header class="site-header">
+    <nav class="nav-inner">
+      <a class="brand" href="index.html">SpecDrive</a>
+      <ul class="nav-links">
+        <li><a href="getting-started.html">Get started</a></li>
+        <li><a href="mcp.html">MCP</a></li>
+        <li><a href="cli.html">CLI</a></li>
+        <li><a href="coding-standards.html" class="active">Coding standards</a></li>
+        <li><a href="spec-format.html">Spec format</a></li>
+        <li><a href="https://github.com/Anu-Code07/spec-copilot">GitHub</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <main>
+    <div class="container">
+      <header class="page-header">
+        <h1>Coding standards</h1>
+        <p>
+          SpecDrive is not a two-line style guide. On <code>setup</code>, each stack gets a full
+          <code>.specdrive/coding-style.md</code> that Cursor/Claude must follow when generating
+          <code>design.md</code>, <code>tasks.md</code>, and implementation.
+        </p>
+      </header>
+
+      <div class="callout">
+        <div class="callout-title">Where it lives</div>
+        <p>
+          After <code>npx -y @specdrive/mcp setup --stack &lt;stack&gt;</code>, open
+          <code>.specdrive/coding-style.md</code> in your app. MCP generation bundles include this
+          file as steering context.
+        </p>
+      </div>
+
+      <section>
+        <h2>Flutter — Clean Architecture + BLoC</h2>
+        <p>Blocking rules for production Flutter PRs:</p>
+        <ul>
+          <li><strong>Layers:</strong> <code>presentation / domain / data</code> — UI → BLoC → UseCase → Repository</li>
+          <li><strong>Dumb widgets:</strong> no filtering, pricing, or API calls in <code>build()</code></li>
+          <li><strong>Domain purity:</strong> entities have no JSON; repositories are interfaces only</li>
+          <li><strong>BLoC:</strong> sealed states (Initial/Loading/Loaded/Error), complete Equatable <code>props</code>, descriptive events</li>
+          <li><strong>SOLID:</strong> depend on abstractions; one use case per operation; no god-BLoCs</li>
+          <li><strong>UI:</strong> <code>const</code>, extract long builds, <code>ListView.builder</code>, <code>mounted</code> after async, no <code>print</code></li>
+          <li><strong>Tests:</strong> every new bloc/usecase/helper needs <code>_test.dart</code></li>
+        </ul>
+        <p><a href="coding-standards/flutter.md">Full Flutter standards (markdown)</a></p>
+      </section>
+
+      <section>
+        <h2>Next.js — App Router + feature modules</h2>
+        <ul>
+          <li>Thin <code>page.tsx</code>; feature modules with <code>domain/</code> + <code>data/</code></li>
+          <li>Server Components by default; <code>'use client'</code> only when required</li>
+          <li>No DTOs in UI; mappers in <code>data/</code></li>
+          <li>URL/server/Zustand slices — no business filters in JSX</li>
+          <li>Vitest + Testing Library for domain/hooks</li>
+        </ul>
+        <p><a href="coding-standards/nextjs.md">Full Next.js standards (markdown)</a></p>
+      </section>
+
+      <section>
+        <h2>React Native — Expo + feature modules</h2>
+        <ul>
+          <li>Screens compose hooks/stores — no fetch in JSX</li>
+          <li>Discrete status unions, not boolean soup</li>
+          <li><code>FlatList</code>/<code>FlashList</code> with stable keys</li>
+          <li>Domain has zero RN imports; DTOs stay in <code>data/</code></li>
+          <li>A11y labels on CTAs; platform diffs in <code>design.md</code></li>
+        </ul>
+        <p><a href="coding-standards/react-native.md">Full React Native standards (markdown)</a></p>
+      </section>
+
+      <section>
+        <h2>How SpecDrive enforces this</h2>
+        <ol>
+          <li><code>setup</code> writes stack-specific <code>coding-style.md</code> + <code>structure.md</code> + <code>tech-stack.md</code></li>
+          <li>MCP <code>generate_*</code> bundles include those steering files</li>
+          <li><code>tasks.md</code> must tag UI vs logic so Design2Code never owns BLoC/state/tests</li>
+          <li><code>review_code</code> / host AI should reject PRs that violate layer boundaries</li>
+        </ol>
+      </section>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="footer-links">
+      <a href="index.html">Home</a>
+      <a href="getting-started.html">Get started</a>
+    </div>
+    <p>SpecDrive documentation</p>
+  </footer>
+  <script src="script.js"></script>
+</body>
+</html>
