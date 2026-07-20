@@ -4,6 +4,20 @@ All notable changes to SpecDrive are documented here.
 
 Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.1.8] - 2026-07-20
+
+### Added
+
+- Kiro-style YOUR JOURNEY: brief → requirements → gap → HLD → LLD → tasks → implement → validate
+- Human gates only (`update_spec` requires `userConfirmed: true`) — never auto-approve
+- Dated folders `specs/features/YYYY-MM-DD[-TICKET]-slug/` + `spec.json` with `ready_for_implementation`
+- Steering under `.specdrive/steering/`; Design2Code optional during implement (UI + Figma token)
+
+### Changed
+
+- Split design into `design-hld.md` + `design-lld.md`
+- Docs site updated for the 8-step journey (no Maestro phase)
+
 ## [0.1.7] - 2026-07-20
 
 ### Added
