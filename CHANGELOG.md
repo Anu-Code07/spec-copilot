@@ -4,6 +4,14 @@ All notable changes to SpecDrive are documented here.
 
 Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.1.7] - 2026-07-20
+
+### Added
+
+- Full stack coding standards (not stubs): Flutter Clean Architecture + BLoC, Next.js App Router, React Native
+- Written to `.specdrive/coding-style.md` on setup; docs at `docs/coding-standards.html`
+- Generation prompts enforce coding-style.md + UI vs logic task tagging
+
 ## [0.1.6] - 2026-07-20
 
 ### Added

@@ -11,11 +11,13 @@ export const DESIGN_SECTIONS = [
   'Component Hierarchy',
   'Widget Specifications',
   'Navigation',
-  'State Management',
+  'State Management (BLoC)',
+  'Clean Architecture Notes',
   'Platform Behavior',
   'Accessibility',
   'Requirement Traceability',
 ] as const;
 
 /** Default structure.md template for Flutter projects */
-export const STRUCTURE_TEMPLATE = 'lib/features/{feature}/data|domain|presentation';
+export const STRUCTURE_TEMPLATE =
+  'lib/src/features/{feature}/data|domain|presentation/bloc';

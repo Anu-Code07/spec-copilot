@@ -82,8 +82,13 @@ export type {
   RuntimeMode,
 } from './ai/index.js';
 
-export { SPECDRIVE_VERSION } from './domain/types.js';
-export { SPECDRIVE_PACKAGE_VERSION } from './domain/types.js';
+export { SPECDRIVE_VERSION, SPECDRIVE_PACKAGE_VERSION } from './domain/types.js';
+
+export {
+  CODING_STYLE_FLUTTER,
+  CODING_STYLE_NEXTJS,
+  CODING_STYLE_REACT_NATIVE,
+} from './templates/coding-styles/index.js';
 
 export {
   stackToFramework,

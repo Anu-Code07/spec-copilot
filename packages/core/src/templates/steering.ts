@@ -1,5 +1,10 @@
 import type { FrontendStack, ProjectConfig } from '../domain/types.js';
 import { stackLabel } from '../domain/paths.js';
+import {
+  CODING_STYLE_FLUTTER,
+  CODING_STYLE_NEXTJS,
+  CODING_STYLE_REACT_NATIVE,
+} from './coding-styles/index.js';
 
 export function defaultConfig(stack: FrontendStack): ProjectConfig {
   return {
@@ -61,29 +66,33 @@ export function techStackMd(stack: FrontendStack): string {
     flutter: `# Tech Stack
 
 - **Platform:** Flutter 3.x
-- **State:** Riverpod
+- **Architecture:** Clean Architecture (data / domain / presentation)
+- **State:** flutter_bloc (BLoC / Cubit) + Equatable
+- **DI:** get_it / injectable (or project standard)
 - **Navigation:** go_router
 - **HTTP:** dio
-- **Testing:** flutter_test, mocktail
-- **Architecture:** Clean Architecture + feature folders
+- **Errors:** Either/Failure or NetworkResponse — never raw exceptions to UI
+- **Testing:** flutter_test, bloc_test, mocktail
 `,
     nextjs: `# Tech Stack
 
 - **Platform:** Next.js 14+ (App Router)
-- **Language:** TypeScript
-- **State:** React Context / Zustand
-- **Styling:** Tailwind CSS
+- **Language:** TypeScript (strict)
+- **Architecture:** Feature modules (components / hooks / domain / data)
+- **Server Components** by default; \`'use client'\` only when required
+- **Client state:** Zustand slices or URL search params
+- **Styling:** Project design system (Tailwind / CSS variables)
 - **Testing:** Vitest, Testing Library
-- **Architecture:** Feature-based colocation
 `,
     'react-native': `# Tech Stack
 
 - **Platform:** React Native (Expo)
-- **Language:** TypeScript
-- **Navigation:** React Navigation
-- **State:** Zustand / Context
+- **Language:** TypeScript (strict)
+- **Architecture:** Feature modules (screens / hooks / domain / data)
+- **Navigation:** Expo Router or React Navigation
+- **State:** Zustand feature slices (discrete status unions)
+- **Lists:** FlatList / FlashList
 - **Testing:** Jest, Testing Library
-- **Architecture:** Feature folders
 `,
   };
   return stacks[stack];
@@ -94,47 +103,54 @@ export function structureMd(stack: FrontendStack): string {
     flutter: `# Project Structure
 
 \`\`\`
-lib/
-├── core/
-│   ├── theme/
-│   ├── router/
-│   └── network/
-└── features/
-    └── {feature}/
-        ├── data/
-        ├── domain/
-        └── presentation/
-            ├── pages/
-            ├── widgets/
-            └── providers/
+lib/src/features/{feature}/
+├── data/
+│   ├── datasources/     # remote + local separated
+│   ├── models/          # DTOs only (fromJson/toJson)
+│   └── repositories/    # implements domain interfaces
+├── domain/
+│   ├── entities/        # plain Dart, no JSON
+│   ├── repositories/    # abstract interfaces only
+│   └── usecases/        # one execute() each
+└── presentation/
+    ├── pages/
+    ├── widgets/         # dumb UI
+    └── bloc/            # events + sealed states + bloc
 \`\`\`
+
+UI → BLoC → UseCase → Repository. Never skip layers.
 `,
     nextjs: `# Project Structure
 
 \`\`\`
 src/
-├── app/
-│   └── {route}/
-│       ├── page.tsx
-│       └── components/
-├── components/
-│   └── ui/
+├── app/{route}/              # thin pages + loading/error
+│   └── _components/
+├── features/{feature}/
+│   ├── components/
+│   ├── hooks/
+│   ├── domain/               # pure TS
+│   ├── data/                 # fetchers + DTOs + mappers
+│   └── index.ts              # public API
+├── components/ui/
 └── lib/
-    ├── hooks/
-    └── utils/
 \`\`\`
 `,
     'react-native': `# Project Structure
 
 \`\`\`
 src/
-├── navigation/
-├── screens/
-│   └── {feature}/
-│       ├── components/
-│       └── hooks/
-├── components/
-└── services/
+├── navigation/ or app/       # Expo Router
+├── features/{feature}/
+│   ├── screens/              # composition only
+│   ├── components/
+│   ├── hooks/ | store/
+│   ├── domain/
+│   ├── data/
+│   └── index.ts
+├── components/ui/
+├── lib/
+└── theme/
 \`\`\`
 `,
   };
@@ -142,28 +158,18 @@ src/
 }
 
 export function codingStyleMd(stack: FrontendStack): string {
-  return `# Coding Style (${stackLabel(stack)})
-
-## Components / Widgets
-
-- One component per file
-- Props/interfaces defined explicitly
-- Extract reusable UI into shared components
-
-## State
-
-- Keep state close to where it is used
-- Async operations via dedicated providers/notifiers
-
-## Naming
-
-- Screens/Pages: PascalCase + Screen/Page suffix
-- Components/Widgets: PascalCase
-- Files: snake_case (Flutter) or kebab-case (React)
-
-## Testing
-
-- Widget/component tests for all UI specs
-- Test loading, empty, error, and success states
-`;
+  switch (stack) {
+    case 'flutter':
+      return CODING_STYLE_FLUTTER;
+    case 'nextjs':
+      return CODING_STYLE_NEXTJS;
+    case 'react-native':
+      return CODING_STYLE_REACT_NATIVE;
+    default: {
+      const _exhaustive: never = stack;
+      return _exhaustive;
+    }
+  }
 }
+
+export { stackLabel };
