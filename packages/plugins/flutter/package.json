@@ -1,6 +1,6 @@
 {
   "name": "@specdrive/plugin-flutter",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "SpecDrive stack plugin for Flutter — Clean Architecture, Riverpod, widget tests",
   "license": "MIT",
   "type": "module",

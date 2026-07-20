@@ -25,7 +25,15 @@ async function ensureInitialized(root: string, stack: FrontendStack): Promise<bo
 export function registerSetup(program: Command): void {
   const setup = program
     .command('setup')
-    .description('Set up SpecDrive integrations');
+    .description('Set up SpecDrive integrations (mcp | cursor)')
+    .action(() => {
+      console.log(chalk.bold('SpecDrive setup'));
+      console.log('');
+      console.log('  spec setup mcp --stack flutter     # any MCP IDE (recommended)');
+      console.log('  spec setup cursor --stack flutter  # MCP + Cursor rules/skills');
+      console.log('');
+      console.log(chalk.dim('Need @specdrive/cli@0.1.5+: npm install -g @specdrive/cli@latest'));
+    });
 
   setup
     .command('mcp')

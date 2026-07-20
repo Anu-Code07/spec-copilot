@@ -1,5 +1,5 @@
 import { Command } from 'commander';
-import { SPECDRIVE_VERSION } from '@specdrive/core';
+import { SPECDRIVE_PACKAGE_VERSION, SPECDRIVE_VERSION } from '@specdrive/core';
 import { registerInit } from './commands/init.js';
 import { registerCreate } from './commands/create.js';
 import { registerApprove } from './commands/approve.js';
@@ -21,7 +21,11 @@ export function run(argv: string[]): void {
   program
     .name('spec')
     .description('SpecDrive — frontend spec-driven development for Flutter, Next.js, and React Native')
-    .version(SPECDRIVE_VERSION);
+    .version(
+      SPECDRIVE_PACKAGE_VERSION,
+      '-V, --version',
+      `npm package version (spec format ${SPECDRIVE_VERSION})`,
+    );
 
   registerInit(program);
   registerCreate(program);
@@ -39,3 +43,4 @@ export function run(argv: string[]): void {
 
   program.parse(argv);
 }
+

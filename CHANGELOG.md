@@ -4,6 +4,17 @@ All notable changes to SpecDrive are documented here.
 
 Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.1.5] - 2026-07-20
+
+### Fixed
+
+- `spec --version` now prints the **npm package version** (e.g. 0.1.5), not the format version 1.0.0
+- `spec setup` with no subcommand lists `mcp` and `cursor` options
+
+### Added
+
+- Alternate binary: `specdrive` (same CLI as `spec`)
+
 ## [0.1.4] - 2026-07-20
 
 ### Changed
