@@ -53,16 +53,56 @@
       </div>
 
       <section>
-        <h2>Install</h2>
-        <pre><code>npm install -g @specdrive/mcp @specdrive/cli
+        <h2>Install (one command)</h2>
+        <pre><code>npm install -g @specdrive/cli
+cd your-app
+spec setup mcp --stack flutter</code></pre>
+        <p>Writes <code>.specdrive/mcp.json</code> + IDE config. Reload MCP in your editor.</p>
 
-# Or use npx without global install (recommended)
-npx -y @specdrive/mcp</code></pre>
-        <p>Run <code>spec init</code> in your project before using MCP tools.</p>
+        <div class="callout">
+          <div class="callout-title"><code>npx -y @specdrive/mcp</code> shows a waiting message?</div>
+          <p><strong>Installed correctly.</strong> MCP uses stdio — the server waits for your IDE. Test via chat (<code>search_specs</code>), not the terminal.</p>
+        </div>
       </section>
 
       <section>
-        <h2>Cursor</h2>
+        <h2>Any MCP client</h2>
+        <p>Same server everywhere — only the config file path changes:</p>
+        <table>
+          <thead><tr><th>Client</th><th>Config</th></tr></thead>
+          <tbody>
+            <tr><td>Cursor, Windsurf</td><td><code>.cursor/mcp.json</code></td></tr>
+            <tr><td>Claude Desktop</td><td><code>claude_desktop_config.json</code> (absolute <code>cwd</code>)</td></tr>
+            <tr><td>Cline, Continue, other</td><td>Project <code>.specdrive/mcp.json</code> or client-specific MCP settings</td></tr>
+          </tbody>
+        </table>
+        <pre><code>{
+  "mcpServers": {
+    "specdrive": {
+      "command": "npx",
+      "args": ["-y", "@specdrive/mcp"],
+      "cwd": "${workspaceFolder}"
+    }
+  }
+}</code></pre>
+        <p>Claude Desktop: replace <code>cwd</code> with <code>/absolute/path/to/your/project</code>.</p>
+      </section>
+
+      <section>
+        <h2>Cursor extras</h2>
+        <pre><code>spec setup cursor --stack flutter</code></pre>
+        <p>Adds workflow rules + <code>specdrive-sdd</code> skill on top of MCP.</p>
+      </section>
+
+      <section>
+        <h2>Install (manual)</h2>
+        <pre><code>npm install -g @specdrive/mcp @specdrive/cli
+# Or: npx -y @specdrive/mcp  (test only — IDE starts MCP automatically)</code></pre>
+        <p>Run <code>spec setup mcp</code> in your project before using MCP tools.</p>
+      </section>
+
+      <section>
+        <h2>Cursor (legacy manual)</h2>
         <p>Add to <code>.cursor/mcp.json</code> in your project root:</p>
         <pre><code>{
   "mcpServers": {
@@ -150,13 +190,17 @@ export FIGMA_TOKEN="figd_YOUR_TOKEN" >> ~/.zshrc
   "fileKey": "YOUR_FIGMA_FILE_KEY"
 }</code></pre>
 
-        <h3>Auto-run UI tasks</h3>
-        <pre><code># MCP — pass autoFigma: true on get_next_task
-# UI tasks → Design2Code generates widgets/screens (component scope)
-# Logic tasks → skipped, returns normal implement context
+        <h3>Auto-run UI tasks (ask token at task time)</h3>
+        <pre><code># MCP get_next_task on UI task → asks user for Figma token or skip
+# User provides token:
+get_next_task { slug, figmaToken: "figd_...", figmaAction: "use" }
 
-# CLI
-spec implement --spec my-feature --next --auto-figma</code></pre>
+# User skips Design2Code:
+get_next_task { slug, figmaAction: "skip" }
+
+# CLI equivalent:
+spec implement --spec my-feature --next --figma-token figd_...
+spec implement --spec my-feature --next --figma-skip</code></pre>
 
         <table>
           <thead><tr><th>Task type</th><th>Who implements</th></tr></thead>

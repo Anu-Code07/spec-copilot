@@ -60,7 +60,7 @@ export {
   getImplementContext,
   formatImplementContext,
 } from './services/implement-service.js';
-export type { ImplementResult } from './services/implement-service.js';
+export type { ImplementResult, FigmaAction, FigmaPrompt } from './services/implement-service.js';
 
 export { reviewSpec } from './services/review-service.js';
 export { formatReviewReport, runReview } from '@specdrive/review-engine';
@@ -119,3 +119,21 @@ export {
   getCursorSetupStatus,
 } from './integrations/cursor-setup-service.js';
 export type { CursorSetupResult, CursorSetupOptions } from './integrations/cursor-setup-service.js';
+
+export {
+  setupMcpIntegration,
+  buildMcpServerConfig,
+  getUniversalMcpSnippet,
+} from './integrations/mcp-setup-service.js';
+export type { McpSetupResult, McpSetupOptions, McpServerConfig } from './integrations/mcp-setup-service.js';
+
+export {
+  stepsAfterCreateSpec,
+  stepsAfterDocument,
+  stepsAfterApproveGate,
+  stepsAfterGetNextTask,
+  stepsAfterCompleteTask,
+  formatWorkflowSteps,
+  formatWorkflowStepsMarkdown,
+} from './workflow/guidance.js';
+export type { WorkflowStep, WorkflowSurface } from './workflow/guidance.js';

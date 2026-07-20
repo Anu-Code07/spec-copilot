@@ -8,7 +8,7 @@ description: Run SpecDrive frontend spec-driven development via MCP. Use for cre
 ## Prerequisite check (do this first)
 
 1. Confirm `.specdrive/config.yaml` exists in workspace root.
-2. If missing → tell user to run: `spec setup cursor --stack <flutter|nextjs|react-native>`
+2. If missing → tell user to run: `spec setup mcp --stack <flutter|nextjs|react-native>`
 3. Reload MCP in Cursor, then retry.
 
 ## Standard workflow
@@ -18,7 +18,11 @@ description: Run SpecDrive frontend spec-driven development via MCP. Use for cre
 3. **write_spec_document** `{ slug, document, content }`
 4. **update_spec** `{ slug, gate }` — approve before next phase
 5. Repeat for gap-analysis → design → tasks
-6. **get_next_task** → implement → **complete_task**
+6. **get_next_task** → on UI tasks ask user for Figma token or skip → implement → **complete_task**
+
+## Figma at task time
+
+If `get_next_task` returns `figmaPrompt`, ask the user to provide a Figma token or skip Design2Code.
 
 ## Quick spec (small UI change)
 

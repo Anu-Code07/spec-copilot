@@ -59,19 +59,20 @@
 
       <section>
         <h2>Spec workflow</h2>
+        <p>Prefer <strong>MCP tools</strong> in Cursor/Claude. CLI commands are optional equivalents.</p>
         <table>
           <thead>
-            <tr><th>Command</th><th>Description</th></tr>
+            <tr><th>MCP tool</th><th>CLI command</th><th>Description</th></tr>
           </thead>
           <tbody>
-            <tr><td><code>spec create &lt;title&gt;</code></td><td>Create feature spec with requirements.md</td></tr>
-            <tr><td><code>spec create &lt;title&gt; --quick</code></td><td>Generate all docs without gates</td></tr>
-            <tr><td><code>spec create --type bugfix</code></td><td>Create bugfix spec</td></tr>
-            <tr><td><code>spec approve &lt;gate&gt; --spec &lt;slug&gt;</code></td><td>Approve gate: requirements, gap-analysis, design, tasks, all</td></tr>
-            <tr><td><code>spec gap-analysis --spec &lt;slug&gt;</code></td><td>Generate gap-analysis.md (CLI free LLM)</td></tr>
-            <tr><td><code>spec design --spec &lt;slug&gt;</code></td><td>Generate design.md from approved gap-analysis</td></tr>
-            <tr><td><code>spec tasks --spec &lt;slug&gt;</code></td><td>Generate tasks.md from approved design</td></tr>
-            <tr><td><code>spec status --spec &lt;slug&gt;</code></td><td>Show phase, gates, task progress</td></tr>
+            <tr><td><code>create_spec</code></td><td><code>spec create &lt;title&gt;</code></td><td>Create feature spec with requirements.md</td></tr>
+            <tr><td><code>create_spec</code> + quick gates</td><td><code>spec create &lt;title&gt; --quick</code></td><td>Generate all docs without gates (CLI only)</td></tr>
+            <tr><td><code>create_spec</code> type bugfix</td><td><code>spec create --type bugfix</code></td><td>Create bugfix spec</td></tr>
+            <tr><td><code>update_spec</code></td><td><code>spec approve &lt;gate&gt; --spec &lt;slug&gt;</code></td><td>Approve gate: requirements, gap-analysis, design, tasks, all</td></tr>
+            <tr><td><code>generate_gap_analysis</code></td><td><code>spec gap-analysis --spec &lt;slug&gt;</code></td><td>Gap-analysis bundle (MCP) or CLI free LLM</td></tr>
+            <tr><td><code>generate_design</code></td><td><code>spec design --spec &lt;slug&gt;</code></td><td>Generate design.md from approved gap-analysis</td></tr>
+            <tr><td><code>generate_tasks</code></td><td><code>spec tasks --spec &lt;slug&gt;</code></td><td>Generate tasks.md from approved design</td></tr>
+            <tr><td><code>get_spec_status</code></td><td><code>spec status --spec &lt;slug&gt;</code></td><td>Show phase, gates, task progress</td></tr>
           </tbody>
         </table>
       </section>
@@ -80,12 +81,13 @@
         <h2>Implementation &amp; review</h2>
         <table>
           <thead>
-            <tr><th>Command</th><th>Description</th></tr>
+            <tr><th>MCP tool</th><th>CLI command</th><th>Description</th></tr>
           </thead>
           <tbody>
-            <tr><td><code>spec implement --spec &lt;slug&gt; --next</code></td><td>Print context for next pending task</td></tr>
-            <tr><td><code>spec review --spec &lt;slug&gt;</code></td><td>Review implementation against design.md</td></tr>
-            <tr><td><code>spec review --spec &lt;slug&gt; --ci</code></td><td>Exit non-zero if review fails (CI)</td></tr>
+            <tr><td><code>get_next_task</code></td><td><code>spec implement --spec &lt;slug&gt; --next</code></td><td>Next task context; UI tasks prompt Figma token/skip</td></tr>
+            <tr><td><code>complete_task</code></td><td><code>spec implement --task &lt;id&gt; --complete</code></td><td>Mark task done</td></tr>
+            <tr><td><code>review_code</code></td><td><code>spec review --spec &lt;slug&gt;</code></td><td>Review implementation against design.md</td></tr>
+            <tr><td><code>review_code</code> (CI)</td><td><code>spec review --spec &lt;slug&gt; --ci</code></td><td>Exit non-zero if review fails</td></tr>
           </tbody>
         </table>
       </section>

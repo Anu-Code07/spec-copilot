@@ -1,20 +1,23 @@
 # SpecDrive MCP Server
 
-Connect SpecDrive to Cursor, Claude Desktop, or any MCP client.
+Connect SpecDrive to **Cursor, Claude Desktop, Windsurf, Cline, Continue**, or any MCP client.
 
-**MCP mode uses your host AI's API keys** (Cursor/Claude). SpecDrive scans the repo and returns **generation bundles** — prompts + codebase context — but does **not** call any LLM itself. You generate the markdown with your host AI, then save it via `write_spec_document`.
+**MCP mode uses your host AI's API keys** (Cursor/Claude). SpecDrive scans the repo and returns **generation bundles** — prompts + codebase context — but does **not** call any LLM itself.
 
-## Install
+## Simple install (any IDE)
+
+In your **app project** root:
 
 ```bash
-npm install -g @specdrive/cli @specdrive/mcp
-# or
-pnpm add -g @specdrive/cli @specdrive/mcp
+npm install -g @specdrive/cli
+spec setup mcp --stack flutter   # or nextjs | react-native
 ```
 
-## Cursor configuration
+Then reload MCP in your IDE. Test: call tool `search_specs`.
 
-Add to `.cursor/mcp.json`:
+### Universal MCP config
+
+All clients use the same server:
 
 ```json
 {
@@ -28,7 +31,25 @@ Add to `.cursor/mcp.json`:
 }
 ```
 
-## Claude Desktop configuration
+| IDE | Config file |
+|-----|-------------|
+| **Cursor / Windsurf** | `.cursor/mcp.json` (auto-written by `spec setup mcp`) |
+| **Claude Desktop** | `claude_desktop_config.json` — use absolute `cwd` path |
+| **Other MCP clients** | Copy from `.specdrive/mcp.json` in your project |
+
+### `npx -y @specdrive/mcp` just waits — is it broken?
+
+**No — that means it is installed.** MCP servers communicate over stdio. When run in a terminal they wait for an IDE connection. You normally never run this manually; your IDE starts it from `mcp.json`.
+
+## Cursor (extra)
+
+For rules + skills in addition to MCP:
+
+```bash
+spec setup cursor --stack flutter
+```
+
+## Claude Desktop
 
 Add to `claude_desktop_config.json`:
 
@@ -47,42 +68,36 @@ Add to `claude_desktop_config.json`:
 }
 ```
 
-Replace `cwd` with your project root (where you ran `spec init`). Restart Claude Desktop.
+Restart Claude Desktop.
 
-Or install globally:
-
-```bash
-npm install -g @specdrive/mcp
-```
-
-```json
-{
-  "mcpServers": {
-    "specdrive": {
-      "command": "specdrive-mcp",
-      "cwd": "/absolute/path/to/your/project"
-    }
-  }
-}
-```
-
-See [Marketplace submission guide](../../docs/MARKETPLACE-SUBMISSION.md) for Cursor Marketplace and Claude Directory listing.
-
-## Workflow (MCP)
+## MCP workflow (Kiro-style, frontend-first)
 
 ```
-create_spec          → scaffold meta.yaml + requirements generation bundle
+create_spec          → scaffold + requirements bundle
 write_spec_document  → save host-generated requirements.md
 update_spec          → approve requirements gate
-generate_gap_analysis → gap-analysis bundle (compare reqs vs codebase)
+generate_gap_analysis → gap-analysis bundle
 write_spec_document  → save gap-analysis.md
 update_spec          → approve gap_analysis gate
 generate_design      → design bundle
 write_spec_document  → save design.md
 generate_tasks       → tasks bundle
 write_spec_document  → save tasks.md
-get_next_task        → implement
+get_next_task        → implement (UI tasks prompt for Figma token or skip)
+complete_task        → mark done
 ```
+
+Every major tool response includes **`nextSteps`** — what to run next or skip.
+
+## UI tasks + Design2Code
+
+`get_next_task` on UI tasks:
+
+1. **Asks user** for Figma Personal Access Token (`figd_...`) **or skip**
+2. **Provide token** → `get_next_task { figmaToken: "...", figmaAction: "use" }` → Design2Code scaffolds UI
+3. **Skip** → `get_next_task { figmaAction: "skip" }` → implement with host AI
+
+Logic tasks (BLoC, state, navigation, validation, tests) always use host AI context — never Design2Code.
 
 ## Available tools
 
@@ -91,20 +106,25 @@ get_next_task        → implement
 | `create_spec` | Scaffold spec + return requirements generation bundle |
 | `read_spec` | Read requirements, gap-analysis, design, tasks |
 | `update_spec` | Approve workflow gates |
-| `generate_gap_analysis` | Return gap-analysis bundle (reqs vs codebase) |
+| `generate_gap_analysis` | Return gap-analysis bundle |
 | `generate_design` | Return design.md generation bundle |
 | `generate_tasks` | Return tasks.md generation bundle |
 | `write_spec_document` | Save host AI-generated markdown |
 | `scan_codebase` | Scan repo for relevant source context |
-| `get_next_task` | Get next task implementation context |
+| `get_next_task` | Implementation context; UI tasks prompt Figma token/skip |
 | `complete_task` | Mark task done |
 | `review_code` | Review against design.md |
 | `find_context` | Read steering files |
 | `read_architecture` | Read structure + tech-stack |
 | `search_specs` | List all specs |
 | `get_spec_status` | Phase, gates, task progress |
+| `figma_status` | Check Design2Code + FIGMA_TOKEN |
+| `figma_import` | Import Figma to Design AST |
+| `figma_generate` | Generate code from Figma/AST |
+| `figma_generate_for_spec` | Generate for spec stack + Figma |
+| `figma_preview` | Preview without writing files |
 
-## CLI mode (free LLM)
+## CLI mode (optional)
 
 When using the `spec` CLI directly (not MCP), SpecDrive calls a free LLM chain:
 
@@ -113,8 +133,4 @@ When using the `spec` CLI directly (not MCP), SpecDrive calls a free LLM chain:
 3. Ollama at `http://127.0.0.1:11434` (local)
 4. Template fallback (offline)
 
-```bash
-export GEMINI_API_KEY=your-key
-spec create "Feature name"
-spec gap-analysis --spec feature-name
-```
+See [CLI reference](../../docs/cli.html) for MCP ↔ CLI mapping.
