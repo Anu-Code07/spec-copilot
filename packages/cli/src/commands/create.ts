@@ -7,11 +7,12 @@ import { ensureCliLlmReady } from '../llm-setup.js';
 export function registerCreate(program: Command): void {
   program
     .command('create')
-    .description('Create a new feature or bugfix spec')
+    .description('Create a new feature or bugfix spec (Kiro-style dated folder)')
     .argument('<title>', 'Feature or bug title')
     .option('--quick', 'Generate requirements, design, and tasks without gates')
     .option('--design-first', 'Design-first workflow (future: starts from UI concept)')
-    .option('--type <type>', 'Spec type: feature or bugfix', 'feature')
+    .option('--type <type>', 'Spec type: feature, bugfix, or tech-debt', 'feature')
+    .option('--ticket <id>', 'Optional ticket id for folder name (e.g. FRONT-3092)')
     .option('-d, --description <text>', 'Detailed description')
     .option('--api-key <key>', 'Gemini API key for this session (or add to ~/.zshrc)')
     .action(
@@ -21,6 +22,7 @@ export function registerCreate(program: Command): void {
           quick?: boolean;
           designFirst?: boolean;
           type: string;
+          ticket?: string;
           description?: string;
           apiKey?: string;
         },
@@ -31,26 +33,33 @@ export function registerCreate(program: Command): void {
           const result = await createSpec(root, {
             title,
             description: opts.description,
-            type: opts.type as 'feature' | 'bugfix',
+            type: opts.type as 'feature' | 'bugfix' | 'tech-debt',
+            ticket: opts.ticket,
             quick: opts.quick,
             designFirst: opts.designFirst,
           });
 
-          console.log(chalk.green(`✓ Created spec: ${result.slug}`));
+          console.log(chalk.green(`✓ Created spec: ${result.folderName}`));
           console.log(chalk.dim(`  ID: ${result.id}`));
-          console.log(chalk.dim(`  Generated: ${result.generated.join(', ')}`));
+          console.log(chalk.dim(`  Slug: ${result.slug}`));
+          console.log(chalk.dim(`  Generated: ${result.generated.join(', ') || '(scaffold only)'}`));
           console.log(chalk.dim(`  Path: ${result.paths.dir}`));
 
           if (!opts.quick && opts.type !== 'bugfix') {
             console.log('');
-            console.log('Next steps:');
-            console.log(`  spec approve requirements --spec ${result.slug}`);
-            console.log(`  spec gap-analysis --spec ${result.slug}`);
-            console.log(`  spec approve gap-analysis --spec ${result.slug}`);
-            console.log(`  spec design --spec ${result.slug}`);
+            console.log('YOUR JOURNEY (approve each gate):');
+            console.log(`  spec approve requirements --spec ${result.folderName}`);
+            console.log(`  spec gap-analysis --spec ${result.folderName}`);
+            console.log(`  spec approve gap-analysis --spec ${result.folderName}`);
+            console.log(`  spec design-hld --spec ${result.folderName}`);
+            console.log(`  spec approve design-hld --spec ${result.folderName}`);
+            console.log(`  spec design-lld --spec ${result.folderName}`);
+            console.log(`  spec approve design-lld --spec ${result.folderName}`);
+            console.log(`  spec tasks --spec ${result.folderName}`);
+            console.log(`  spec approve tasks --spec ${result.folderName}`);
           } else if (opts.quick) {
             console.log('');
-            console.log(`  spec implement --spec ${result.slug} --next`);
+            console.log(`  spec implement --spec ${result.folderName} --next`);
           }
         } catch (error) {
           handleError(error);

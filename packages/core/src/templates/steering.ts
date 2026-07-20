@@ -13,6 +13,8 @@ export function defaultConfig(stack: FrontendStack): ProjectConfig {
     workflow: {
       default: 'requirements-first',
       requireApproval: true,
+      datedFolders: true,
+      designHldLld: true,
     },
     generation: {
       provider: 'template',
@@ -27,12 +29,14 @@ export function defaultConfig(stack: FrontendStack): ProjectConfig {
 
 export function configYaml(stack: FrontendStack): string {
   const config = defaultConfig(stack);
-  return `# SpecDrive project config
+  return `# SpecDrive project config (Kiro-style SDD — works in any repo)
 specdriveVersion: "${config.specdriveVersion}"
 stack: ${stack}
 workflow:
   default: requirements-first
   requireApproval: true
+  datedFolders: true
+  designHldLld: true
 generation:
   provider: template
   askClarifyingQuestions: false
@@ -102,55 +106,60 @@ export function structureMd(stack: FrontendStack): string {
   const structures: Record<FrontendStack, string> = {
     flutter: `# Project Structure
 
+> **Edit this file for YOUR repo.** SpecDrive must target real packages/paths here — never invent a scaffold folder at the wrong root.
+
+## Package / app roots
+List the real app packages in this workspace (examples only — replace with yours):
+- \`<your-app-package>/lib/...\`
+
+## Feature layout (when using Clean Architecture + BLoC)
+
 \`\`\`
-lib/src/features/{feature}/
+<package>/lib/.../features/{vertical}/
 ├── data/
-│   ├── datasources/     # remote + local separated
-│   ├── models/          # DTOs only (fromJson/toJson)
-│   └── repositories/    # implements domain interfaces
+│   ├── datasources/
+│   ├── models/
+│   └── repositories/
 ├── domain/
-│   ├── entities/        # plain Dart, no JSON
-│   ├── repositories/    # abstract interfaces only
-│   └── usecases/        # one execute() each
+│   ├── entities/
+│   ├── repositories/
+│   └── usecases/
 └── presentation/
     ├── pages/
-    ├── widgets/         # dumb UI
-    └── bloc/            # events + sealed states + bloc
+    ├── widgets/
+    └── bloc/
 \`\`\`
 
-UI → BLoC → UseCase → Repository. Never skip layers.
+UI → BLoC → UseCase → Repository. Follow coding-style.md.
 `,
     nextjs: `# Project Structure
 
+> **Edit this file for YOUR repo.** Cite real app directories — do not invent modules.
+
 \`\`\`
 src/
-├── app/{route}/              # thin pages + loading/error
-│   └── _components/
+├── app/{route}/
 ├── features/{feature}/
 │   ├── components/
 │   ├── hooks/
-│   ├── domain/               # pure TS
-│   ├── data/                 # fetchers + DTOs + mappers
-│   └── index.ts              # public API
-├── components/ui/
-└── lib/
+│   ├── domain/
+│   └── data/
+└── components/ui/
 \`\`\`
 `,
     'react-native': `# Project Structure
 
+> **Edit this file for YOUR repo.** Cite real app directories — do not invent modules.
+
 \`\`\`
 src/
-├── navigation/ or app/       # Expo Router
+├── app/ or navigation/
 ├── features/{feature}/
-│   ├── screens/              # composition only
+│   ├── screens/
 │   ├── components/
-│   ├── hooks/ | store/
 │   ├── domain/
-│   ├── data/
-│   └── index.ts
-├── components/ui/
-├── lib/
-└── theme/
+│   └── data/
+└── components/ui/
 \`\`\`
 `,
   };

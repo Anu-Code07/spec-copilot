@@ -3,8 +3,8 @@ import { existsSync } from 'node:fs';
 import { homedir } from 'node:os';
 import { join } from 'node:path';
 import type { FrontendStack, ParsedTask, TaskKind } from '../domain/types.js';
-import { defaultProjectPaths, featureSpecPaths } from '../domain/paths.js';
-import { fileExists } from '../infrastructure/files.js';
+import { defaultProjectPaths } from '../domain/paths.js';
+import { fileExists, resolveFeaturePaths } from '../infrastructure/files.js';
 import { ensureProfileEnvHydrated } from '../infrastructure/shell-profile-env.js';
 import { SpecDriveError } from '../services/project-service.js';
 import { getSpecStatus } from '../services/spec-service.js';
@@ -535,8 +535,13 @@ export async function readSpecDesignExcerpt(
   maxChars = 1500,
 ): Promise<string | undefined> {
   const paths = defaultProjectPaths(projectRoot);
-  const specPaths = featureSpecPaths(paths.specs, slug);
-  if (!(await fileExists(specPaths.design))) return undefined;
-  const content = await readFile(specPaths.design, 'utf-8');
-  return content.slice(0, maxChars);
+  const specPaths = await resolveFeaturePaths(paths.specs, slug);
+  const candidates = [specPaths.designLld, specPaths.designHld, specPaths.design];
+  for (const p of candidates) {
+    if (await fileExists(p)) {
+      const content = await readFile(p, 'utf-8');
+      return content.slice(0, maxChars);
+    }
+  }
+  return undefined;
 }

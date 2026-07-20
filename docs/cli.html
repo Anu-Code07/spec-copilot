@@ -65,14 +65,14 @@
             <tr><th>MCP tool</th><th>CLI command</th><th>Description</th></tr>
           </thead>
           <tbody>
-            <tr><td><code>create_spec</code></td><td><code>spec create &lt;title&gt;</code></td><td>Create feature spec with requirements.md</td></tr>
+            <tr><td><code>create_spec</code></td><td><code>spec create &lt;title&gt; [--ticket ID]</code></td><td>Create dated feature folder + requirements.md</td></tr>
             <tr><td><code>create_spec</code> + quick gates</td><td><code>spec create &lt;title&gt; --quick</code></td><td>Generate all docs without gates (CLI only)</td></tr>
             <tr><td><code>create_spec</code> type bugfix</td><td><code>spec create --type bugfix</code></td><td>Create bugfix spec</td></tr>
-            <tr><td><code>update_spec</code></td><td><code>spec approve &lt;gate&gt; --spec &lt;slug&gt;</code></td><td>Approve gate: requirements, gap-analysis, design, tasks, all</td></tr>
-            <tr><td><code>generate_gap_analysis</code></td><td><code>spec gap-analysis --spec &lt;slug&gt;</code></td><td>Gap-analysis bundle (MCP) or CLI free LLM</td></tr>
-            <tr><td><code>generate_design</code></td><td><code>spec design --spec &lt;slug&gt;</code></td><td>Generate design.md from approved gap-analysis</td></tr>
-            <tr><td><code>generate_tasks</code></td><td><code>spec tasks --spec &lt;slug&gt;</code></td><td>Generate tasks.md from approved design</td></tr>
-            <tr><td><code>get_spec_status</code></td><td><code>spec status --spec &lt;slug&gt;</code></td><td>Show phase, gates, task progress</td></tr>
+            <tr><td><code>update_spec</code></td><td><code>spec approve &lt;gate&gt; --spec &lt;slug&gt;</code></td><td>Approve: brief, requirements, gap-analysis, design-hld, design-lld, tasks, all</td></tr>
+            <tr><td><code>generate_gap_analysis</code></td><td><code>spec gap-analysis --spec &lt;slug&gt;</code></td><td>Gap-analysis (cite real files)</td></tr>
+            <tr><td><code>generate_design_hld</code> / <code>_lld</code></td><td><code>spec design-hld</code> / <code>design-lld</code> / <code>design</code></td><td>Generate HLD and/or LLD</td></tr>
+            <tr><td><code>generate_tasks</code></td><td><code>spec tasks --spec &lt;slug&gt;</code></td><td>Generate checkbox tasks.md from approved LLD</td></tr>
+            <tr><td><code>get_spec_status</code></td><td><code>spec status --spec &lt;slug&gt;</code></td><td>Show phase, gates, ready_for_implementation</td></tr>
           </tbody>
         </table>
       </section>

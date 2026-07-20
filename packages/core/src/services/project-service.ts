@@ -35,14 +35,34 @@ export async function initProject(
   }
 
   await mkdir(paths.specs, { recursive: true });
+  await mkdir(paths.features, { recursive: true });
+  await mkdir(paths.bugs, { recursive: true });
+  await mkdir(`${paths.specs}/tech-debt`, { recursive: true });
   await mkdir(paths.decisions, { recursive: true });
   await mkdir(paths.reviews, { recursive: true });
+  await mkdir(paths.steering, { recursive: true });
+  await mkdir(`${paths.steering}/verticals`, { recursive: true });
 
   await writeText(paths.config, configYaml(stack));
   await writeText(steering.product, productMd());
   await writeText(steering.techStack, techStackMd(stack));
   await writeText(steering.structure, structureMd(stack));
   await writeText(steering.codingStyle, codingStyleMd(stack));
+  await writeText(
+    `${paths.steering}/README.md`,
+    `# Steering (source of truth)
+
+Edit these files for YOUR repository before generating specs:
+
+- \`product.md\` — product vision / users
+- \`tech.md\` — real tech stack (state mgmt, DI, routing, testing)
+- \`structure.md\` — real package/folder layout (cite actual paths)
+- \`coding-style.md\` — architecture & review rules
+- \`verticals/*.md\` — optional domain-specific notes
+
+Gap analysis, HLD/LLD, and tasks must follow these files — never invent scaffold folders.
+`,
+  );
 
   return { paths };
 }

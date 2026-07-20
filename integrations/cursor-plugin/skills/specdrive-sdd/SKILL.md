@@ -1,45 +1,33 @@
 ---
 name: specdrive-sdd
-description: Run SpecDrive frontend spec-driven development via MCP. Use for create_spec, quick specs, gap analysis, design, tasks, cart/UI features, or when MCP returns NOT_INITIALIZED.
+description: Run SpecDrive Kiro-style frontend SDD via MCP. Use for create_spec, brief, gap, HLD/LLD, tasks, or NOT_INITIALIZED.
 ---
 
-# SpecDrive SDD Skill
+# SpecDrive SDD Skill (Kiro-style)
 
-## Prerequisite check (do this first)
+Works in **any repo**. Steering = source of truth for paths/architecture.
 
-1. Confirm `.specdrive/config.yaml` exists in workspace root.
-2. If missing → tell user to run: `spec setup mcp --stack <flutter|nextjs|react-native>`
-3. Reload MCP in Cursor, then retry.
-
-## Standard workflow
-
-1. **create_spec** `{ title, description?, type: "feature"|"bugfix" }`
-2. Use returned **bundle** prompts → generate markdown
-3. **write_spec_document** `{ slug, document, content }`
-4. **update_spec** `{ slug, gate }` — approve before next phase
-5. Repeat for gap-analysis → design → tasks
-6. **get_next_task** → UI tasks: ask Cursor/Claude to implement (optional Figma token for Design2Code) → **complete_task**
-
-## Figma at task time (optional)
-
-If `get_next_task` returns `figmaPrompt`:
-- **Skip (recommended default)** → Cursor/Claude implements the UI from `design.md`
-- **Provide token** → Design2Code scaffolds UI first, then host AI finishes
-
-## Quick spec (small UI change)
-
-Even for "quick" features, run the full gate pipeline (can keep docs concise):
+## YOUR JOURNEY
 
 ```
-create_spec → requirements → approve
-→ gap-analysis → approve → design → approve → tasks → approve
-→ get_next_task
+1. brief          → STOP → approve
+2. requirements   → STOP → approve
+3. gap-analysis   → STOP → approve
+4. design-hld     → STOP → approve
+5. design-lld     → STOP → approve
+6. tasks          → STOP → approve   ← last human gate
+7. implement      → get_next_task → complete_task
+                    (Design2Code only if user wants Figma on a UI task)
+8. validate       → review_code
 ```
 
-## MCP never calls LLM
+## Hard rules
 
-You generate all documents. Use **scan_codebase** / **find_context** for repo context.
+1. After write_spec_document → show FULL documentContent → STOP
+2. Never update_spec without userConfirmed: true
+3. Cite real files in gap analysis — no invented modules
+4. Implement under steering/structure.md paths only
+5. Tasks: small, file-scoped, checkboxes [ ] / [x]
+6. Design2Code is NOT a separate phase — only optional during implement
 
-## Full reference
-
-See `.cursor/rules/specdrive-cheatsheet.mdc` in this project.
+See `.cursor/rules/specdrive-cheatsheet.mdc`

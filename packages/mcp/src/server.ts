@@ -6,11 +6,9 @@ import {
   ListResourcesRequestSchema,
   ReadResourceRequestSchema,
 } from '@modelcontextprotocol/sdk/types.js';
-import type { WorkflowStep } from '@specdrive/core';
 import {
   findProjectRoot,
   createSpec,
-  approveGate,
   getMcpGenerationBundle,
   writeSpecDocument,
   scanCodebaseContext,
@@ -27,7 +25,7 @@ import {
   fileExists,
   resolveSpecSlug,
   defaultProjectPaths,
-  featureSpecPaths,
+  resolveFeaturePaths,
   SpecDriveError,
   type GateName,
   type SpecDocument,
@@ -47,9 +45,16 @@ import {
   formatWorkflowSteps,
   type FigmaAction,
   type SpecDocument as CoreSpecDocument,
+  buildSpecCreatedJourney,
+  buildPhaseCheatSheet,
+  buildApprovalBrief,
+  applyApprovalDecision,
+  documentToGate,
+  type ApprovalDecision,
+  SPECDRIVE_PACKAGE_VERSION,
+  type WorkflowStep,
 } from '@specdrive/core';
 import { cwd } from 'node:process';
-import { SPECDRIVE_PACKAGE_VERSION } from '@specdrive/core';
 
 function mcpJson(payload: Record<string, unknown>): { content: Array<{ type: 'text'; text: string }> } {
   return { content: [{ type: 'text', text: JSON.stringify(payload, null, 2) }] };
@@ -70,8 +75,7 @@ async function getRoot(): Promise<string> {
         'Not a SpecDrive project — .specdrive/config.yaml missing in workspace root.',
         '',
         'Fix (run in your app folder, then reload MCP):',
-        '  npm install -g @specdrive/cli@0.1.2',
-        '  spec setup mcp --stack flutter',
+        '  npx -y @specdrive/mcp setup --stack flutter',
         '',
         `Current MCP cwd: ${cwd()}`,
       ].join('\n'),
@@ -83,17 +87,52 @@ async function getRoot(): Promise<string> {
 
 function normalizeGate(gate: string): GateName | 'all' {
   const map: Record<string, GateName | 'all'> = {
+    brief: 'brief',
     requirements: 'requirements',
     'gap-analysis': 'gap_analysis',
     gap_analysis: 'gap_analysis',
+    'design-hld': 'design_hld',
+    design_hld: 'design_hld',
+    'design-lld': 'design_lld',
+    design_lld: 'design_lld',
     design: 'design',
     tasks: 'tasks',
+    maestro: 'maestro',
     all: 'all',
   };
   const normalized = map[gate];
   if (!normalized) throw new SpecDriveError(`Invalid gate: ${gate}`, 'INVALID_GATE');
   return normalized;
 }
+
+const GATE_ENUM = [
+  'brief',
+  'requirements',
+  'gap-analysis',
+  'gap_analysis',
+  'design-hld',
+  'design_hld',
+  'design-lld',
+  'design_lld',
+  'design',
+  'tasks',
+  'maestro',
+  'all',
+] as const;
+
+const DOC_ENUM = [
+  'brief',
+  'requirements',
+  'gap-analysis',
+  'design-hld',
+  'design-lld',
+  'design',
+  'decisions',
+  'tasks',
+  'maestro',
+  'bugfix',
+  'impl-validation',
+] as const;
 
 export async function createMcpServer(): Promise<Server> {
   const server = new Server(
@@ -106,27 +145,28 @@ export async function createMcpServer(): Promise<Server> {
       {
         name: 'create_spec',
         description:
-          'Scaffold a new spec (meta.yaml only). Returns a generation bundle — use YOUR host API (Cursor/Claude) to generate requirements.md, then call write_spec_document.',
+          'Scaffold a new Kiro-style spec (spec.json under specs/features/YYYY-MM-DD-…). Returns YOUR JOURNEY + brief generation bundle. Host AI generates docs; human approves every gate.',
         inputSchema: {
           type: 'object',
           properties: {
             title: { type: 'string' },
             description: { type: 'string' },
-            type: { type: 'string', enum: ['feature', 'bugfix'] },
+            type: { type: 'string', enum: ['feature', 'bugfix', 'tech-debt'] },
+            ticket: { type: 'string', description: 'Optional ticket id e.g. FRONT-3092 or JIRA-123' },
           },
           required: ['title'],
         },
       },
       {
         name: 'read_spec',
-        description: 'Read spec documents (requirements, gap-analysis, design, tasks)',
+        description: 'Read spec documents (brief, requirements, gap-analysis, design-hld/lld, tasks, …)',
         inputSchema: {
           type: 'object',
           properties: {
             slug: { type: 'string' },
             document: {
               type: 'string',
-              enum: ['requirements', 'gap-analysis', 'design', 'tasks', 'meta', 'all'],
+              enum: ['brief', 'requirements', 'gap-analysis', 'design-hld', 'design-lld', 'design', 'decisions', 'tasks', 'maestro', 'meta', 'all'],
             },
           },
           required: ['slug'],
@@ -134,14 +174,38 @@ export async function createMcpServer(): Promise<Server> {
       },
       {
         name: 'update_spec',
-        description: 'Approve a workflow gate',
+        description:
+          'Apply a HUMAN gate decision. Requires userConfirmed=true after the user replied approve/reject/request_changes. Without userConfirmed, returns an approval brief — does NOT approve.',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            slug: { type: 'string' },
+            gate: { type: 'string', enum: [...GATE_ENUM] },
+            userConfirmed: {
+              type: 'boolean',
+              description: 'MUST be true only after the human explicitly approved/rejected in chat',
+            },
+            decision: {
+              type: 'string',
+              enum: ['approve', 'reject', 'request_changes'],
+              description: 'Human decision. Default approve when userConfirmed.',
+            },
+            notes: { type: 'string', description: 'Optional user feedback for request_changes' },
+          },
+          required: ['slug', 'gate'],
+        },
+      },
+      {
+        name: 'request_gate_approval',
+        description:
+          'Build a Kiro-style approval brief + full document content for the human to read. Call after write_spec_document. Show documentContent to the user and STOP.',
         inputSchema: {
           type: 'object',
           properties: {
             slug: { type: 'string' },
             gate: {
               type: 'string',
-              enum: ['requirements', 'gap-analysis', 'gap_analysis', 'design', 'tasks', 'all'],
+              enum: ['brief', 'requirements', 'gap-analysis', 'gap_analysis', 'design-hld', 'design_hld', 'design-lld', 'design_lld', 'tasks', 'maestro'],
             },
           },
           required: ['slug', 'gate'],
@@ -150,51 +214,67 @@ export async function createMcpServer(): Promise<Server> {
       {
         name: 'generate_gap_analysis',
         description:
-          'Return gap-analysis generation bundle. Host AI generates gap-analysis.md comparing requirements vs codebase.',
+          'Return gap-analysis generation bundle. Host AI must cite REAL files from the scan + steering — no invented modules.',
         inputSchema: {
           type: 'object',
-          properties: {
-            slug: { type: 'string' },
-          },
+          properties: { slug: { type: 'string' } },
+          required: ['slug'],
+        },
+      },
+      {
+        name: 'generate_design_hld',
+        description: 'Return design-hld (architecture / flows) generation bundle.',
+        inputSchema: {
+          type: 'object',
+          properties: { slug: { type: 'string' } },
+          required: ['slug'],
+        },
+      },
+      {
+        name: 'generate_design_lld',
+        description: 'Return design-lld (classes / files / contracts) generation bundle.',
+        inputSchema: {
+          type: 'object',
+          properties: { slug: { type: 'string' } },
           required: ['slug'],
         },
       },
       {
         name: 'generate_design',
-        description:
-          'Return design generation bundle. Host AI generates design.md from requirements + gap-analysis.',
+        description: 'Legacy alias — returns design-hld bundle. Prefer generate_design_hld / generate_design_lld.',
         inputSchema: {
           type: 'object',
-          properties: {
-            slug: { type: 'string' },
-          },
+          properties: { slug: { type: 'string' } },
           required: ['slug'],
         },
       },
       {
         name: 'generate_tasks',
-        description:
-          'Return tasks generation bundle. Host AI generates tasks.md from design + gap-analysis.',
+        description: 'Return tasks.md generation bundle (checkbox, file-scoped tasks).',
         inputSchema: {
           type: 'object',
-          properties: {
-            slug: { type: 'string' },
-          },
+          properties: { slug: { type: 'string' } },
+          required: ['slug'],
+        },
+      },
+      {
+        name: 'generate_maestro',
+        description: 'Optional: return maestro.md E2E semantics map bundle (UI features).',
+        inputSchema: {
+          type: 'object',
+          properties: { slug: { type: 'string' } },
           required: ['slug'],
         },
       },
       {
         name: 'write_spec_document',
         description:
-          'Save host AI-generated markdown to the spec folder (requirements, gap-analysis, design, tasks, bugfix)',
+          'Save host AI-generated markdown. Returns full content + approval brief. Host AI MUST show documentContent to the user and STOP — never auto-approve.',
         inputSchema: {
           type: 'object',
           properties: {
             slug: { type: 'string' },
-            document: {
-              type: 'string',
-              enum: ['requirements', 'gap-analysis', 'design', 'tasks', 'bugfix'],
-            },
+            document: { type: 'string', enum: [...DOC_ENUM] },
             content: { type: 'string' },
           },
           required: ['slug', 'document', 'content'],
@@ -214,29 +294,21 @@ export async function createMcpServer(): Promise<Server> {
       {
         name: 'get_next_task',
         description:
-          'Get implementation context for the next pending task. UI tasks: Cursor/Claude implements by default; optionally prompt for Figma token (Design2Code). State/BLoC/navigation/tests always stay with host AI.',
+          'Get implementation context for the next pending task. Requires ready_for_implementation=true. UI tasks: Cursor/Claude by default; optional Figma token.',
         inputSchema: {
           type: 'object',
           properties: {
             slug: { type: 'string' },
-            autoFigma: {
-              type: 'boolean',
-              description: 'Offer optional Design2Code for UI tasks (default true). Host AI still owns UI unless user provides a token.',
-            },
-            figmaAction: {
-              type: 'string',
-              enum: ['prompt', 'use', 'skip'],
-              description:
-                'prompt: ask user (default) — skip = Cursor/Claude implements UI; use = run Design2Code with figmaToken.',
-            },
-            figmaFileKey: { type: 'string', description: 'Figma file key or URL (or .specdrive/figma.json)' },
-            figmaToken: { type: 'string', description: 'Figma Personal Access Token (figd_...) when user provides it' },
+            autoFigma: { type: 'boolean' },
+            figmaAction: { type: 'string', enum: ['prompt', 'use', 'skip'] },
+            figmaFileKey: { type: 'string' },
+            figmaToken: { type: 'string' },
           },
         },
       },
       {
         name: 'complete_task',
-        description: 'Mark a task as done',
+        description: 'Mark a task as done (checkbox [x])',
         inputSchema: {
           type: 'object',
           properties: {
@@ -248,7 +320,7 @@ export async function createMcpServer(): Promise<Server> {
       },
       {
         name: 'review_code',
-        description: 'Review implementation against design.md',
+        description: 'Review implementation against HLD/LLD + requirements',
         inputSchema: {
           type: 'object',
           properties: {
@@ -260,12 +332,12 @@ export async function createMcpServer(): Promise<Server> {
       },
       {
         name: 'find_context',
-        description: 'Get steering files and project context',
+        description: 'Get steering files and project context (always load before designing)',
         inputSchema: { type: 'object', properties: {} },
       },
       {
         name: 'read_architecture',
-        description: 'Read structure.md and tech-stack.md steering files',
+        description: 'Read structure.md and tech.md steering files',
         inputSchema: { type: 'object', properties: {} },
       },
       {
@@ -275,7 +347,7 @@ export async function createMcpServer(): Promise<Server> {
       },
       {
         name: 'get_spec_status',
-        description: 'Get spec phase, gates, and task progress',
+        description: 'Get spec phase, gates, ready_for_implementation, and task progress + phase cheat sheet',
         inputSchema: {
           type: 'object',
           properties: { slug: { type: 'string' } },
@@ -283,52 +355,36 @@ export async function createMcpServer(): Promise<Server> {
       },
       {
         name: 'figma_status',
-        description:
-          'Check Design2Code (figma-to-code) integration: package installed, FIGMA_TOKEN, design AST',
+        description: 'Check Design2Code integration: package installed, FIGMA_TOKEN, design AST',
         inputSchema: { type: 'object', properties: {} },
       },
       {
         name: 'figma_import',
-        description:
-          'Import a Figma file into .design2code/design-ast.json using Design2Code (figma-to-code)',
+        description: 'Import a Figma file into .design2code/design-ast.json',
         inputSchema: {
           type: 'object',
           properties: {
-            fileKey: { type: 'string', description: 'Figma file key or full Figma URL' },
-            figmaToken: { type: 'string', description: 'Optional — defaults to FIGMA_TOKEN env' },
-            outputDir: { type: 'string', description: 'Output dir under project root (default .design2code)' },
-            nodeIds: {
-              type: 'array',
-              items: { type: 'string' },
-              description: 'Optional Figma node IDs to import',
-            },
+            fileKey: { type: 'string' },
+            figmaToken: { type: 'string' },
+            outputDir: { type: 'string' },
+            nodeIds: { type: 'array', items: { type: 'string' } },
           },
           required: ['fileKey'],
         },
       },
       {
         name: 'figma_generate',
-        description:
-          'Generate code from Figma or saved Design AST via Design2Code. Use mergeStrategy preview to dry-run.',
+        description: 'Generate code from Figma or saved Design AST via Design2Code',
         inputSchema: {
           type: 'object',
           properties: {
-            framework: {
-              type: 'string',
-              enum: ['flutter', 'react', 'nextjs', 'react-native'],
-            },
-            scope: {
-              type: 'string',
-              enum: ['component', 'screen', 'feature', 'project'],
-            },
+            framework: { type: 'string', enum: ['flutter', 'react', 'nextjs', 'react-native'] },
+            scope: { type: 'string', enum: ['component', 'screen', 'feature', 'project'] },
             figmaFileKey: { type: 'string' },
             figmaToken: { type: 'string' },
             astPath: { type: 'string' },
             designSystemPath: { type: 'string' },
-            mergeStrategy: {
-              type: 'string',
-              enum: ['create', 'merge', 'replace', 'preview'],
-            },
+            mergeStrategy: { type: 'string', enum: ['create', 'merge', 'replace', 'preview'] },
             selection: { type: 'array', items: { type: 'string' } },
             includeTests: { type: 'boolean' },
           },
@@ -337,22 +393,15 @@ export async function createMcpServer(): Promise<Server> {
       },
       {
         name: 'figma_generate_for_spec',
-        description:
-          'Generate UI code for a SpecDrive spec using project stack + Figma. Best after design.md is approved.',
+        description: 'Generate UI code for a SpecDrive spec using project stack + Figma',
         inputSchema: {
           type: 'object',
           properties: {
             slug: { type: 'string' },
             figmaFileKey: { type: 'string' },
             figmaToken: { type: 'string' },
-            scope: {
-              type: 'string',
-              enum: ['component', 'screen', 'feature', 'project'],
-            },
-            mergeStrategy: {
-              type: 'string',
-              enum: ['create', 'merge', 'replace', 'preview'],
-            },
+            scope: { type: 'string', enum: ['component', 'screen', 'feature', 'project'] },
+            mergeStrategy: { type: 'string', enum: ['create', 'merge', 'replace', 'preview'] },
             selection: { type: 'array', items: { type: 'string' } },
             includeTests: { type: 'boolean' },
           },
@@ -361,18 +410,12 @@ export async function createMcpServer(): Promise<Server> {
       },
       {
         name: 'figma_preview',
-        description: 'Preview Design2Code output without writing files (mergeStrategy=preview)',
+        description: 'Preview Design2Code output without writing files',
         inputSchema: {
           type: 'object',
           properties: {
-            framework: {
-              type: 'string',
-              enum: ['flutter', 'react', 'nextjs', 'react-native'],
-            },
-            scope: {
-              type: 'string',
-              enum: ['component', 'screen', 'feature', 'project'],
-            },
+            framework: { type: 'string', enum: ['flutter', 'react', 'nextjs', 'react-native'] },
+            scope: { type: 'string', enum: ['component', 'screen', 'feature', 'project'] },
             figmaFileKey: { type: 'string' },
             figmaToken: { type: 'string' },
             astPath: { type: 'string' },
@@ -383,14 +426,15 @@ export async function createMcpServer(): Promise<Server> {
     ],
   }));
 
+
   server.setRequestHandler(ListResourcesRequestSchema, async () => {
     const root = await getRoot();
     const specs = await listSpecs(root);
     return {
       resources: specs.map((s) => ({
-        uri: `specdrive://spec/${s.slug}`,
+        uri: `specdrive://spec/${s.folderName ?? s.slug}`,
         name: s.title,
-        description: `${s.phase} — ${s.id}`,
+        description: `${s.phase} — ${s.id}${s.ready_for_implementation ? ' (ready)' : ''}`,
         mimeType: 'text/markdown',
       })),
     };
@@ -402,10 +446,10 @@ export async function createMcpServer(): Promise<Server> {
     if (!match) throw new Error(`Unknown resource: ${request.params.uri}`);
     const slug = match[1];
     const paths = defaultProjectPaths(root);
-    const specPaths = featureSpecPaths(paths.specs, slug);
+    const specPaths = await resolveFeaturePaths(paths.specs, slug);
     const parts: string[] = [];
-    for (const doc of ['requirements', 'gapAnalysis', 'design', 'tasks'] as const) {
-      const p = specPaths[doc];
+    for (const key of ['brief', 'requirements', 'gapAnalysis', 'designHld', 'designLld', 'tasks', 'maestro'] as const) {
+      const p = specPaths[key];
       if (await fileExists(p)) {
         parts.push(await readText(p));
       }
@@ -426,9 +470,22 @@ export async function createMcpServer(): Promise<Server> {
           const result = await createSpec(root, {
             title: a.title as string,
             description: a.description as string | undefined,
-            type: (a.type as 'feature' | 'bugfix') ?? 'feature',
+            type: (a.type as 'feature' | 'bugfix' | 'tech-debt') ?? 'feature',
+            ticket: a.ticket as string | undefined,
             runtime: 'mcp',
           });
+          const folder = result.folderName;
+          const journey =
+            result.journeyMarkdown ??
+            buildSpecCreatedJourney({
+              slug: result.slug,
+              folderName: folder,
+              title: a.title as string,
+              type: (a.type as string) ?? 'feature',
+              stack: (await getSpecStatus(root, folder)).meta.stack,
+              createdFiles: [result.paths.specJson],
+              ticket: a.ticket as string | undefined,
+            }).userFacingMarkdown;
           const bundleText = result.generationBundle
             ? formatGenerationBundle(result.generationBundle)
             : null;
@@ -436,12 +493,15 @@ export async function createMcpServer(): Promise<Server> {
             withNextSteps(
               {
                 slug: result.slug,
+                folderName: folder,
                 id: result.id,
                 paths: result.paths,
+                journey,
+                userFacingMarkdown: journey,
                 generated: result.generated,
                 bundle: bundleText ? JSON.parse(bundleText) : null,
               },
-              stepsAfterCreateSpec(result.slug, 'mcp'),
+              stepsAfterCreateSpec(folder, 'mcp'),
             ),
           );
         }
@@ -449,65 +509,158 @@ export async function createMcpServer(): Promise<Server> {
           const slug = a.slug as string;
           const doc = (a.document as string) ?? 'all';
           const paths = defaultProjectPaths(root);
-          const specPaths = featureSpecPaths(paths.specs, slug);
-          const readDoc = async (key: 'requirements' | 'gapAnalysis' | 'design' | 'tasks' | 'meta') => {
+          const specPaths = await resolveFeaturePaths(paths.specs, slug);
+          const readDoc = async (key: keyof typeof specPaths) => {
             const p = specPaths[key];
+            if (typeof p !== 'string') return '';
             return (await fileExists(p)) ? await readText(p) : '';
           };
           if (doc === 'all') {
             const parts = await Promise.all(
-              ([
-                ['requirements', 'requirements'],
-                ['gap-analysis', 'gapAnalysis'],
-                ['design', 'design'],
-                ['tasks', 'tasks'],
-              ] as const).map(async ([label, key]) =>
-                `## ${label}\n${await readDoc(key)}`,
-              ),
+              (
+                [
+                  ['brief', 'brief'],
+                  ['requirements', 'requirements'],
+                  ['gap-analysis', 'gapAnalysis'],
+                  ['design-hld', 'designHld'],
+                  ['design-lld', 'designLld'],
+                  ['tasks', 'tasks'],
+                  ['maestro', 'maestro'],
+                ] as const
+              ).map(async ([label, key]) => `## ${label}\n${await readDoc(key)}`),
             );
             return { content: [{ type: 'text', text: parts.join('\n\n') }] };
           }
-          const keyMap: Record<string, 'requirements' | 'gapAnalysis' | 'design' | 'tasks' | 'meta'> = {
+          if (doc === 'meta') {
+            return { content: [{ type: 'text', text: await readDoc('specJson') }] };
+          }
+          const keyMap: Record<string, keyof typeof specPaths> = {
+            brief: 'brief',
             requirements: 'requirements',
             'gap-analysis': 'gapAnalysis',
+            'design-hld': 'designHld',
+            'design-lld': 'designLld',
             design: 'design',
+            decisions: 'decisions',
             tasks: 'tasks',
-            meta: 'meta',
+            maestro: 'maestro',
           };
           const key = keyMap[doc] ?? 'requirements';
           return { content: [{ type: 'text', text: await readDoc(key) }] };
         }
         case 'update_spec': {
           const gate = normalizeGate(a.gate as string);
-          const meta = await approveGate(root, a.slug as string, gate);
+          const slug = a.slug as string;
+          const userConfirmed = a.userConfirmed === true;
+          if (!userConfirmed) {
+            const briefGate = gate === 'all' ? 'requirements' : gate === 'design' ? 'design_lld' : gate;
+            const brief = await buildApprovalBrief(root, slug, briefGate);
+            return mcpJson({
+              status: 'pending_user_approval',
+              message:
+                'userConfirmed was not true — NOT approved. Show documentContent to the human and STOP.',
+              approvalBrief: brief,
+              documentContent: brief.documentContent,
+              userFacingMarkdown: brief.userPromptMarkdown,
+              cheatSheet: brief.cheatSheet,
+              nextSteps: [
+                '1. [Next] Show documentContent / userFacingMarkdown to the user',
+                '2. [Next] Wait for approve | request changes | reject',
+                '3. [Next] Only then call update_spec with userConfirmed: true',
+              ],
+            });
+          }
+          const decision = ((a.decision as ApprovalDecision) ?? 'approve') as ApprovalDecision;
+          const result = await applyApprovalDecision(root, slug, gate, decision, {
+            notes: a.notes as string | undefined,
+            approvedBy: 'user',
+          });
           return mcpJson(
-            withNextSteps({ meta }, stepsAfterApproveGate(meta, gate, 'mcp')),
+            withNextSteps(
+              {
+                meta: result.meta,
+                decision: result.decision,
+                message: result.message,
+                ready_for_implementation: result.meta.ready_for_implementation,
+                cheatSheet: buildPhaseCheatSheet({
+                  slug: result.meta.folderName ?? result.meta.slug,
+                  meta: result.meta,
+                }),
+              },
+              stepsAfterApproveGate(result.meta, gate, 'mcp'),
+            ),
           );
+        }
+        case 'request_gate_approval': {
+          const gate = normalizeGate(a.gate as string);
+          if (gate === 'all') throw new SpecDriveError('Pick a specific gate', 'INVALID_GATE');
+          const briefGate = gate === 'design' ? 'design_lld' : gate;
+          const brief = await buildApprovalBrief(root, a.slug as string, briefGate);
+          return mcpJson({
+            ...brief,
+            nextSteps: [
+              '1. [Next] Show documentContent to the user and STOP',
+              '2. [Next] Wait for their reply before update_spec',
+            ],
+          });
         }
         case 'generate_gap_analysis': {
           const text = await getMcpGenerationBundle(root, a.slug as string, 'gap-analysis');
           return { content: [{ type: 'text', text }] };
         }
+        case 'generate_design_hld': {
+          const text = await getMcpGenerationBundle(root, a.slug as string, 'design-hld');
+          return { content: [{ type: 'text', text }] };
+        }
+        case 'generate_design_lld': {
+          const text = await getMcpGenerationBundle(root, a.slug as string, 'design-lld');
+          return { content: [{ type: 'text', text }] };
+        }
         case 'generate_design': {
-          const text = await getMcpGenerationBundle(root, a.slug as string, 'design');
+          const text = await getMcpGenerationBundle(root, a.slug as string, 'design-hld');
           return { content: [{ type: 'text', text }] };
         }
         case 'generate_tasks': {
           const text = await getMcpGenerationBundle(root, a.slug as string, 'tasks');
           return { content: [{ type: 'text', text }] };
         }
+        case 'generate_maestro': {
+          const text = await getMcpGenerationBundle(root, a.slug as string, 'maestro');
+          return { content: [{ type: 'text', text }] };
+        }
         case 'write_spec_document': {
           const doc = a.document as SpecDocument;
           const slug = a.slug as string;
-          const filePath = await writeSpecDocument(
-            root,
-            slug,
-            doc,
-            a.content as string,
-          );
+          const filePath = await writeSpecDocument(root, slug, doc, a.content as string);
+          const gate = documentToGate(doc);
+          let approvalBrief = null as Awaited<ReturnType<typeof buildApprovalBrief>> | null;
+          if (gate) {
+            try {
+              approvalBrief = await buildApprovalBrief(root, slug, gate);
+            } catch {
+              approvalBrief = null;
+            }
+          }
+          const status = await getSpecStatus(root, slug);
           return mcpJson(
             withNextSteps(
-              { saved: doc, path: filePath, slug },
+              {
+                saved: doc,
+                path: filePath,
+                slug,
+                folderName: status.meta.folderName ?? slug,
+                documentContent: a.content as string,
+                approvalBrief,
+                userFacingMarkdown: approvalBrief?.userPromptMarkdown ?? null,
+                cheatSheet: buildPhaseCheatSheet({
+                  slug: status.meta.folderName ?? slug,
+                  meta: status.meta,
+                  document: doc as CoreSpecDocument,
+                }),
+                stop: true,
+                message:
+                  'STOP — show documentContent to the human. Do NOT call update_spec until they approve.',
+              },
               stepsAfterDocument(slug, doc as CoreSpecDocument, 'mcp'),
             ),
           );
@@ -526,10 +679,7 @@ export async function createMcpServer(): Promise<Server> {
             reqContent,
           );
           return {
-            content: [{
-              type: 'text',
-              text: formatCodebaseContext(ctx),
-            }],
+            content: [{ type: 'text', text: formatCodebaseContext(ctx) }],
           };
         }
         case 'get_next_task': {
@@ -594,16 +744,16 @@ export async function createMcpServer(): Promise<Server> {
         case 'get_spec_status': {
           const slug = await resolveSpecSlug(root, a.slug as string | undefined);
           const status = await getSpecStatus(root, slug);
-          return {
-            content: [{
-              type: 'text',
-              text: JSON.stringify({
-                meta: status.meta,
-                tasksDone: status.tasksDone,
-                tasksTotal: status.tasksTotal,
-              }, null, 2),
-            }],
-          };
+          return mcpJson({
+            meta: status.meta,
+            tasksDone: status.tasksDone,
+            tasksTotal: status.tasksTotal,
+            ready_for_implementation: status.meta.ready_for_implementation,
+            cheatSheet: buildPhaseCheatSheet({
+              slug: status.meta.folderName ?? status.meta.slug,
+              meta: status.meta,
+            }),
+          });
         }
         case 'figma_status': {
           const status = await getFigmaIntegrationStatus(root);

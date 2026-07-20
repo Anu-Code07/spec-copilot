@@ -7,10 +7,11 @@ import {
 } from './guidance.js';
 
 describe('workflow guidance', () => {
-  it('returns MCP-first steps after create_spec', () => {
+  it('returns MCP-first steps after create_spec (brief first)', () => {
     const steps = stepsAfterCreateSpec('my-feature', 'mcp');
-    expect(steps[0].action).toContain('write_spec_document');
-    expect(steps[1].action).toContain('update_spec');
+    expect(steps[0].action).toContain('brief');
+    expect(steps[1].action).toContain('STOP');
+    expect(steps[2].action).toContain('userConfirmed');
   });
 
   it('returns CLI steps after create_spec', () => {
@@ -18,10 +19,10 @@ describe('workflow guidance', () => {
     expect(steps[0].action).toContain('spec approve');
   });
 
-  it('chains document save to gate approval in MCP', () => {
+  it('chains document save to STOP + human approval in MCP', () => {
     const steps = stepsAfterDocument('slug', 'requirements', 'mcp');
-    expect(steps[0].action).toContain('update_spec');
-    expect(steps[1].action).toContain('generate_gap_analysis');
+    expect(steps[0].action).toContain('STOP');
+    expect(steps[2].action).toContain('userConfirmed');
   });
 
   it('prompts for figma token on UI tasks', () => {

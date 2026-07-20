@@ -1,12 +1,13 @@
 import { existsSync } from 'node:fs';
 import { join } from 'node:path';
 import type { ImplementContext } from '../domain/types.js';
-import { defaultProjectPaths, defaultSteeringPaths, featureSpecPaths } from '../domain/paths.js';
+import { defaultProjectPaths } from '../domain/paths.js';
 import { nextPendingTask, parseTasks } from '../utils/parse.js';
 import {
   fileExists,
   loadMeta,
   readText,
+  resolveFeaturePaths,
 } from '../infrastructure/files.js';
 import {
   classifyTaskForDesign2Code,
@@ -55,8 +56,7 @@ export async function getImplementContext(
 ): Promise<ImplementResult> {
   const slug = await resolveSpecSlug(projectRoot, options.spec);
   const paths = defaultProjectPaths(projectRoot);
-  const specPaths = featureSpecPaths(paths.specs, slug);
-  const steeringPaths = defaultSteeringPaths(paths.specdrive);
+  const specPaths = await resolveFeaturePaths(paths.specs, slug);
 
   if (!(await fileExists(specPaths.tasks))) {
     throw new SpecDriveError(
@@ -65,7 +65,18 @@ export async function getImplementContext(
     );
   }
 
-  const meta = await loadMeta(specPaths.meta);
+  const metaPath = (await fileExists(specPaths.specJson))
+    ? specPaths.specJson
+    : `${specPaths.dir}/meta.yaml`;
+  const meta = await loadMeta(metaPath);
+
+  if (!meta.ready_for_implementation) {
+    throw new SpecDriveError(
+      'Spec is not ready_for_implementation yet. Approve required gates (brief → requirements → gap → HLD → LLD → tasks) first.',
+      'NOT_READY',
+    );
+  }
+
   const tasksContent = await readText(specPaths.tasks);
   const tasks = parseTasks(tasksContent);
 
@@ -81,11 +92,20 @@ export async function getImplementContext(
     throw new SpecDriveError(`Task already complete: ${task.id}`, 'TASK_DONE');
   }
 
-  const steering: ImplementContext['steering'] = {};
-  for (const [key, filePath] of Object.entries(steeringPaths)) {
-    if (await fileExists(filePath)) {
-      steering[key as keyof ImplementContext['steering']] = await readText(filePath);
-    }
+  const { loadSteeringContent } = await import('./steering-service.js');
+  const loaded = await loadSteeringContent(projectRoot);
+  const steering: ImplementContext['steering'] = {
+    product: loaded.product,
+    techStack: loaded.techStack,
+    structure: loaded.structure,
+    codingStyle: loaded.codingStyle,
+  };
+
+  const designParts: string[] = [];
+  if (await fileExists(specPaths.designHld)) designParts.push(await readText(specPaths.designHld));
+  if (await fileExists(specPaths.designLld)) designParts.push(await readText(specPaths.designLld));
+  if (!designParts.length && (await fileExists(specPaths.design))) {
+    designParts.push(await readText(specPaths.design));
   }
 
   const context: ImplementContext = {
@@ -94,9 +114,7 @@ export async function getImplementContext(
     requirementsContent: (await fileExists(specPaths.requirements))
       ? await readText(specPaths.requirements)
       : '',
-    designContent: (await fileExists(specPaths.design))
-      ? await readText(specPaths.design)
-      : '',
+    designContent: designParts.join('\n\n---\n\n'),
     steering,
   };
 

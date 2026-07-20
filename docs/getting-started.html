@@ -100,30 +100,35 @@ npx -y @specdrive/mcp setup --stack flutter</code></pre>
         </section>
 
         <section class="reveal" id="workflow-mcp">
-          <h2>2. Create a spec via MCP</h2>
-          <p>SpecDrive MCP scans your repo and returns <strong>generation bundles</strong>. Your host AI writes the markdown — no SpecDrive API key needed.</p>
+          <h2>2. Create a spec via MCP (Kiro-style)</h2>
+          <p>SpecDrive MCP scans your repo and returns <strong>generation bundles</strong>. Your host AI writes the markdown. <strong>You approve every gate</strong> — never auto-approve.</p>
           <div class="code-block">
             <div class="code-header">
               <div class="code-dots"><span></span><span></span><span></span></div>
-              <span>MCP workflow</span>
+              <span>YOUR JOURNEY</span>
               <button class="copy-btn" type="button">Copy</button>
             </div>
-            <pre><code>create_spec { "title": "Product Review Screen" }
-  → write_spec_document (requirements)
-  → update_spec (gate: requirements)
-generate_gap_analysis → write_spec_document → update_spec
-generate_design       → write_spec_document → update_spec
-generate_tasks        → write_spec_document → update_spec
-get_next_task         → implement → complete_task</code></pre>
+            <pre><code>create_spec { "title": "Product Review Screen", "ticket": "OPTIONAL-123" }
+  → shows YOUR JOURNEY card
+
+1. brief.md → STOP → you approve
+2. requirements.md → STOP → approve
+3. generate_gap_analysis → write → STOP → approve
+4. generate_design_hld → write → STOP → approve
+5. generate_design_lld → write → STOP → approve
+6. generate_tasks → write → STOP → approve   ← last human gate
+7. get_next_task → implement → complete_task
+   (Design2Code only if user wants Figma on a UI task)
+8. review_code</code></pre>
           </div>
-          <p>Each tool response includes <strong>nextSteps</strong> telling you what to run or skip next.</p>
+          <p>Each tool response includes <strong>nextSteps</strong> and a phase <strong>cheat sheet</strong>. Edit <code>.specdrive/steering/*</code> so gap/HLD/LLD target <em>your</em> real package paths.</p>
         </section>
 
         <section class="reveal" id="figma">
           <h2>3. UI tasks + Figma (optional)</h2>
           <p>On <code>get_next_task</code>, UI tasks go to <strong>Cursor/Claude</strong> by default. Figma is optional:</p>
           <ul>
-            <li><strong>Skip (default)</strong> → Cursor/Claude implements screens, widgets, layout from <code>design.md</code></li>
+            <li><strong>Skip (default)</strong> → Cursor/Claude implements screens from HLD/LLD + steering</li>
             <li><strong>Provide Figma token</strong> → Design2Code can scaffold UI first, then host AI finishes</li>
             <li>State, BLoC, navigation, validation, tests always stay with host AI</li>
           </ul>

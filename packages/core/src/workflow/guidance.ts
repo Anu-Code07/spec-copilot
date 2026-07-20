@@ -1,19 +1,13 @@
 import type { FeatureSpecMeta, GateName } from '../domain/types.js';
 import type { SpecDocument } from '../ai/generation-bundle.js';
+import { gateLabel } from '../domain/paths.js';
 
 export type WorkflowSurface = 'mcp' | 'cli';
 
 export interface WorkflowStep {
-  /** What to run next */
   action: string;
-  /** Why this step (or why skip) */
   reason?: string;
-  /** User may skip this step */
   optional?: boolean;
-}
-
-function gateLabel(gate: GateName): string {
-  return gate === 'gap_analysis' ? 'gap-analysis' : gate;
 }
 
 /** Next steps after create_spec (MCP) or spec create (CLI). */
@@ -24,33 +18,26 @@ export function stepsAfterCreateSpec(
   if (surface === 'mcp') {
     return [
       {
-        action: `Generate requirements.md from the returned bundle, then call write_spec_document { slug: "${slug}", document: "requirements", content: "..." }`,
-        reason: 'MCP never calls an LLM — your host AI writes the markdown',
+        action: `Generate brief.md from the returned bundle, then call write_spec_document { slug: "${slug}", document: "brief", content: "..." }`,
+        reason: 'Kiro-style: brief is the first human-approved artifact',
       },
       {
-        action: `Call update_spec { slug: "${slug}", gate: "requirements" }`,
-        reason: 'Approve before gap-analysis',
+        action: `STOP — show the full brief.md to the human and ask: approve / request changes / reject`,
+        reason: 'Never auto-approve gates',
       },
       {
-        action: `Call generate_gap_analysis { slug: "${slug}" }`,
-        reason: 'Compare requirements to your codebase before design',
+        action: `Only after the user says approve → update_spec { slug: "${slug}", gate: "brief", userConfirmed: true, decision: "approve" }`,
+        reason: 'userConfirmed=true is required',
       },
     ];
   }
   return [
     {
-      action: `spec approve requirements --spec ${slug}`,
-      reason: 'Approve before gap-analysis',
+      action: `Show requirements.md to the user, then: spec approve requirements --spec ${slug}`,
+      reason: 'Human approval required before gap-analysis',
     },
     {
       action: `spec gap-analysis --spec ${slug}`,
-      reason: 'CLI uses free LLM (GemINI/Groq/Ollama) to generate gap-analysis.md',
-    },
-    {
-      action: `spec approve gap-analysis --spec ${slug}`,
-    },
-    {
-      action: `spec design --spec ${slug}`,
     },
   ];
 }
@@ -62,72 +49,81 @@ export function stepsAfterDocument(
   surface: WorkflowSurface,
 ): WorkflowStep[] {
   const gateMap: Partial<Record<SpecDocument, GateName>> = {
+    brief: 'brief',
     requirements: 'requirements',
     'gap-analysis': 'gap_analysis',
-    design: 'design',
+    'design-hld': 'design_hld',
+    'design-lld': 'design_lld',
+    design: 'design_lld',
     tasks: 'tasks',
+    maestro: 'maestro',
   };
   const gate = gateMap[document];
+  if (!gate) {
+    return [{ action: `get_spec_status { slug: "${slug}" }` }];
+  }
 
-  const nextMcp: Partial<Record<SpecDocument, WorkflowStep>> = {
-    requirements: {
-      action: `update_spec { slug: "${slug}", gate: "requirements" }`,
-      reason: 'Approve requirements gate',
-    },
-    'gap-analysis': {
-      action: `update_spec { slug: "${slug}", gate: "gap-analysis" }`,
-    },
-    design: {
-      action: `update_spec { slug: "${slug}", gate: "design" }`,
-    },
-    tasks: {
-      action: `update_spec { slug: "${slug}", gate: "tasks" }`,
-      reason: 'After approval, call get_next_task to implement',
-    },
-  };
+  const gateArg = gateLabel(gate);
 
-  const nextGenMcp: Partial<Record<SpecDocument, WorkflowStep>> = {
-    requirements: {
-      action: `generate_gap_analysis { slug: "${slug}" }`,
-      reason: 'Required before design — identifies codebase gaps',
-    },
-    'gap-analysis': {
-      action: `generate_design { slug: "${slug}" }`,
-    },
-    design: {
-      action: `generate_tasks { slug: "${slug}" }`,
-    },
-    tasks: {
-      action: `get_next_task { slug: "${slug}" }`,
-      reason: 'Begin implementation; UI tasks will prompt for Figma token or skip',
-    },
-  };
-
-  if (surface === 'mcp' && gate) {
+  if (surface === 'mcp') {
     return [
-      nextMcp[document]!,
-      nextGenMcp[document] ?? {
-        action: `get_next_task { slug: "${slug}" }`,
+      {
+        action: `STOP — show the user the full ${document} document (documentContent / approvalBrief). Do NOT call update_spec yet.`,
+        reason: 'Kiro-style: human must read and approve before the next phase',
       },
-    ].filter(Boolean);
+      {
+        action: `Wait for user reply: approve | request changes | reject`,
+        reason: 'Only continue after explicit human approval',
+      },
+      {
+        action: `If approve → update_spec { slug: "${slug}", gate: "${gateArg}", userConfirmed: true, decision: "approve" }`,
+        reason: 'userConfirmed is required — auto-approve is forbidden',
+      },
+      {
+        action: `If request changes → revise doc → write_spec_document → ask again`,
+        optional: true,
+      },
+    ];
   }
 
   const cliNext: Partial<Record<SpecDocument, WorkflowStep[]>> = {
+    brief: [
+      { action: `Show brief.md; wait for approval` },
+      { action: `spec approve brief --spec ${slug}` },
+    ],
     requirements: [
+      { action: `Show requirements.md to the user; wait for approval` },
       { action: `spec approve requirements --spec ${slug}` },
       { action: `spec gap-analysis --spec ${slug}` },
     ],
     'gap-analysis': [
+      { action: `Show gap-analysis.md to the user; wait for approval` },
       { action: `spec approve gap-analysis --spec ${slug}` },
-      { action: `spec design --spec ${slug}` },
+      { action: `spec design-hld --spec ${slug}` },
+    ],
+    'design-hld': [
+      { action: `Show design-hld.md; wait for approval` },
+      { action: `spec approve design-hld --spec ${slug}` },
+      { action: `spec design-lld --spec ${slug}` },
+    ],
+    'design-lld': [
+      { action: `Show design-lld.md; wait for approval` },
+      { action: `spec approve design-lld --spec ${slug}` },
+      { action: `spec tasks --spec ${slug}` },
     ],
     design: [
-      { action: `spec approve design --spec ${slug}` },
+      { action: `Show design docs; wait for approval` },
+      { action: `spec approve design-lld --spec ${slug}` },
       { action: `spec tasks --spec ${slug}` },
     ],
     tasks: [
+      { action: `Show tasks.md to the user; wait for approval` },
       { action: `spec approve tasks --spec ${slug}` },
       { action: `spec implement --spec ${slug} --next` },
+    ],
+    maestro: [
+      { action: `Show maestro.md; wait for approval` },
+      { action: `spec approve maestro --spec ${slug}` },
     ],
   };
 
@@ -140,40 +136,60 @@ export function stepsAfterApproveGate(
   approvedGate: GateName | 'all',
   surface: WorkflowSurface,
 ): WorkflowStep[] {
-  const phase = meta.phase;
+  const slug = meta.folderName ?? meta.slug;
 
   if (surface === 'mcp') {
+    if (meta.ready_for_implementation) {
+      return [
+        {
+          action: `get_next_task { slug: "${slug}" }`,
+          reason: 'ready_for_implementation=true — start implementation',
+        },
+      ];
+    }
+
     const byPhase: Record<string, WorkflowStep> = {
+      requirements: {
+        action: `Generate requirements.md then write_spec_document { slug: "${slug}", document: "requirements", content: "..." }`,
+        reason: 'Brief approved',
+      },
       gap_analysis: {
-        action: `generate_gap_analysis { slug: "${meta.slug}" }`,
+        action: `generate_gap_analysis { slug: "${slug}" }`,
         reason: 'Requirements approved — compare reqs vs codebase',
       },
-      design: {
-        action: `generate_design { slug: "${meta.slug}" }`,
-        reason: 'Gap analysis approved — generate UI/UX design.md',
+      design_hld: {
+        action: `generate_design_hld { slug: "${slug}" }`,
+        reason: 'Gap analysis approved — high-level design',
+      },
+      design_lld: {
+        action: `generate_design_lld { slug: "${slug}" }`,
+        reason: 'HLD approved — low-level design',
       },
       tasks: {
-        action: `generate_tasks { slug: "${meta.slug}" }`,
-        reason: 'Design approved — generate sequenced tasks.md',
+        action: `generate_tasks { slug: "${slug}" }`,
+        reason: 'LLD approved — sequenced checkbox tasks (last human gate)',
       },
       implementing: {
-        action: `get_next_task { slug: "${meta.slug}" }`,
-        reason: 'All gates approved — start implementation',
+        action: `get_next_task { slug: "${slug}" }`,
+        reason: 'Tasks approved — Design2Code only if user wants Figma on a UI task',
       },
     };
+
     if (approvedGate === 'all') {
       return [byPhase.implementing];
     }
-    return [byPhase[phase] ?? { action: `get_spec_status { slug: "${meta.slug}" }` }];
+    return [byPhase[meta.phase] ?? { action: `get_spec_status { slug: "${slug}" }` }];
   }
 
   const cliByPhase: Record<string, WorkflowStep> = {
-    gap_analysis: { action: `spec gap-analysis --spec ${meta.slug}` },
-    design: { action: `spec design --spec ${meta.slug}` },
-    tasks: { action: `spec tasks --spec ${meta.slug}` },
-    implementing: { action: `spec implement --spec ${meta.slug} --next` },
+    requirements: { action: `spec create already wrote requirements — approve then gap-analysis` },
+    gap_analysis: { action: `spec gap-analysis --spec ${slug}` },
+    design_hld: { action: `spec design-hld --spec ${slug}` },
+    design_lld: { action: `spec design-lld --spec ${slug}` },
+    tasks: { action: `spec tasks --spec ${slug}` },
+    implementing: { action: `spec implement --spec ${slug} --next` },
   };
-  return [cliByPhase[phase] ?? { action: `spec status --spec ${meta.slug}` }];
+  return [cliByPhase[meta.phase] ?? { action: `spec status --spec ${slug}` }];
 }
 
 /** After get_next_task / spec implement. */
@@ -190,7 +206,7 @@ export function stepsAfterGetNextTask(params: {
   if (params.figmaPromptNeeded) {
     steps.push({
       action:
-        'Ask the user: (A) provide Figma token for optional Design2Code scaffold, or (B) skip — Cursor/Claude implements the UI from design.md',
+        'Ask the user: (A) provide Figma token for optional Design2Code scaffold, or (B) skip — Cursor/Claude implements the UI from HLD/LLD',
       reason: 'UI task — host AI owns UI by default; Design2Code is optional',
     });
     steps.push({
@@ -199,32 +215,40 @@ export function stepsAfterGetNextTask(params: {
       optional: true,
     });
     steps.push({
-      action: `Retry get_next_task { slug: "${params.slug}", figmaAction: "skip" } then implement UI with Cursor/Claude using design.md`,
-      reason: 'Recommended default — host AI builds screens, widgets, layout',
+      action: `Retry get_next_task { slug: "${params.slug}", figmaAction: "skip" } then implement UI with Cursor/Claude using design-hld/lld`,
+      reason: 'Recommended default — host AI builds screens using steering + design',
     });
     return steps;
   }
 
   if (params.design2codeSkipped && params.skipReason) {
     steps.push({
-      action: 'Implement this UI/logic task with Cursor/Claude using the returned spec context (design.md + requirements)',
+      action:
+        'Implement this task with Cursor/Claude using returned context (steering + HLD/LLD + requirements). Use REAL paths from gap-analysis — never invent modules.',
       reason: `Design2Code not used: ${params.skipReason}`,
     });
   } else {
     steps.push({
-      action: 'Cursor/Claude: implement remaining work (UI polish if needed, plus state, BLoC, navigation, validation, tests)',
-      reason: 'Design2Code only scaffolds UI layout when it ran; host AI finishes everything else',
+      action:
+        'Cursor/Claude: implement under paths from steering/structure.md + design-lld file map (state, navigation, tests as needed)',
+      reason: 'Host AI finishes everything Design2Code does not cover',
     });
   }
 
   steps.push({
-    action:
-      surfaceAction(params.surface, `complete_task { slug: "${params.slug}", taskId: "${params.taskId}" }`, `spec implement --spec ${params.slug} --task ${params.taskId} --complete`),
-    reason: 'Mark task done when implementation passes acceptance criteria',
+    action: surfaceAction(
+      params.surface,
+      `complete_task { slug: "${params.slug}", taskId: "${params.taskId}" }`,
+      `spec implement --spec ${params.slug} --task ${params.taskId} --complete`,
+    ),
+    reason: 'Mark task done when acceptance criteria pass (checkbox [x])',
   });
   steps.push({
-    action:
-      surfaceAction(params.surface, `get_next_task { slug: "${params.slug}" }`, `spec implement --spec ${params.slug} --next`),
+    action: surfaceAction(
+      params.surface,
+      `get_next_task { slug: "${params.slug}" }`,
+      `spec implement --spec ${params.slug} --next`,
+    ),
     reason: 'Continue to next pending task',
     optional: true,
   });
@@ -242,17 +266,29 @@ export function stepsAfterCompleteTask(
   if (!hasMoreTasks) {
     return [
       {
-        action: surfaceAction(surface, `review_code { slug: "${slug}" }`, `spec review --spec ${slug}`),
-        reason: 'All tasks done — validate against design.md',
+        action: surfaceAction(
+          surface,
+          `review_code { slug: "${slug}" }`,
+          `spec review --spec ${slug}`,
+        ),
+        reason: 'All tasks done — validate against HLD/LLD + requirements',
       },
     ];
   }
   return [
     {
-      action: surfaceAction(surface, `get_next_task { slug: "${slug}" }`, `spec implement --spec ${slug} --next`),
+      action: surfaceAction(
+        surface,
+        `get_next_task { slug: "${slug}" }`,
+        `spec implement --spec ${slug} --next`,
+      ),
     },
     {
-      action: surfaceAction(surface, `review_code { slug: "${slug}", taskId: "${taskId}" }`, `spec review --spec ${slug} --task ${taskId}`),
+      action: surfaceAction(
+        surface,
+        `review_code { slug: "${slug}", taskId: "${taskId}" }`,
+        `spec review --spec ${slug} --task ${taskId}`,
+      ),
       reason: 'Optional per-task review',
       optional: true,
     },
